@@ -1,0 +1,59 @@
+package flashcards
+
+fun main() {
+    println("Input the number of cards:")
+    quiz(createDeck(readLine()!!.toInt()))
+}
+
+fun createDeck(count: Int): Deck {
+    val deck: Array<FlashCard?> = arrayOfNulls(count)
+    for (i in deck.indices) {
+        println("The card #${i + 1}:")
+        var card = readLine()!!
+        while (alreadyHasCard(deck, card)) {
+            println("The card \"$card\" already exists. Try again:")
+            card = readLine()!!
+        }
+        println("The definition of the card #${i + 1}:")
+        var definition = readLine()!!
+        while (alreadyHasDefinition(deck, definition)) {
+            println("The definition \"$definition\" already exists. Try again:")
+            definition = readLine()!!
+        }
+        deck[i] = FlashCard(card, definition)
+    }
+    return Deck(deck.filterNotNull().toCollection(ArrayList()))
+}
+
+private fun alreadyHasCard(deck: Array<FlashCard?>, card: String) =
+        deck.indexOfFirst { it?.card.equals(card) } >= 0
+
+private fun alreadyHasDefinition(deck: Array<FlashCard?>, definition: String) =
+        deck.indexOfFirst { it?.definition.equals(definition) } >= 0
+
+fun quiz(deck: Deck) {
+    for (i in deck.indices) {
+        val flashCard = deck.card(i)!!
+        println("Print the definition of \"${flashCard.card}\":")
+        val answer = readLine()!!
+        println(if (flashCard.definition.equals(answer)) "Correct answer."
+                else "Wrong answer. The correct one is \"${flashCard.definition}\"${wrongAnswerHint(deck, answer)}")
+    }
+}
+
+fun wrongAnswerHint(deck: Deck, answer: String): String {
+    val flashFlashCard: FlashCard? = deck.findFirst { it.definition == answer }
+    return if (flashFlashCard != null) ", you've just written the definition of \"${flashFlashCard.card}\"."
+        else "."
+}
+
+class Deck(val flashCards: List<FlashCard>) {
+    val indices = flashCards.indices
+
+    fun findFirst(predicate: (FlashCard) -> Boolean): FlashCard? =
+            flashCards.find { predicate(it) }
+
+    fun card(index: Int): FlashCard = flashCards[index]
+}
+
+class FlashCard(val card: String, val definition: String)
