@@ -5,7 +5,7 @@ import java.io.File
 fun main() {
     val deck = mutableMapOf<String, String>()
     do {
-        println("Input the action (add, remove, import, export, ask, exit):")
+        println("Input the action (add, remove, import, export, ask, list, exit):")
         val action = readLine()!!.toLowerCase()
         when (action) {
             "add" -> addTo(deck)
@@ -13,9 +13,16 @@ fun main() {
             "import" -> loadInto(deck)
             "export" -> dumpFrom(deck)
             "ask" -> if (deck.isNotEmpty()) askAbout(deck)
+            "list" -> printCards(deck)
         }
     } while (action != "exit")
     println("Bye bye!")
+}
+
+fun printCards(deck: MutableMap<String, String>) {
+    deck.forEach { (front, back) -> println("(\"$front\" => \"$back\")") }
+    val s = if (deck.size == 1) "" else "s"
+    println("Total of ${deck.size} card$s.\n")
 }
 
 fun addTo(deck: MutableMap<String, String>) {
@@ -91,8 +98,11 @@ fun askAbout(deck: Map<String, String>) {
 
         println("Print the definition of \"$card\":")
         val answer = readLine()!!
-        println(if (definition == answer) "Correct answer."
-            else "Wrong answer. The correct one is \"${definition}\"${hintFor(deck, answer)}")
+        if (definition == answer) {
+            println("Correct answer.")
+        } else {
+            println("Wrong answer. The correct one is \"${definition}\"${hintFor(answer, deck)}")
+        }
     }
 }
 
@@ -110,7 +120,7 @@ fun anythingBut(lastCard: String, deck: Map<String, String>): Pair<String, Strin
     return Pair(card, deck[card]!!)
 }
 
-private fun hintFor(deck: Map<String, String>, answer: String): String {
-    return deck.entries.find { it.value == answer }?.let { ", you've just written the definition of \"${it.key}\"." }
-            ?: "."
+private fun hintFor(answer: String, deck: Map<String, String>): String {
+    val matchingCard = deck.entries.find { it.value == answer }
+    return matchingCard?.let { ", you've just written the definition of \"${it.key}\"." } ?: "."
 }
