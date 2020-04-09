@@ -1,1 +1,2 @@
-Great Britain=London
+France=Paris
+Russia=Moscow

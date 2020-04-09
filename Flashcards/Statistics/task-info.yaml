@@ -471,6 +471,17 @@ files:
         println("Hello, World!")
     }
   learner_created: false
+- name: capitals.txt
+  visible: true
+  text: Great Britain=London
+  learner_created: true
+- name: capitalsNew.txt
+  visible: true
+  text: France=Paris
+  learner_created: true
+- name: src/flashcards/LongestWord.kt
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/83/stages/462/implement
-status: Unchecked
+status: Failed
 record: -1

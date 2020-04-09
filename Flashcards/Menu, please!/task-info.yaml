@@ -311,6 +311,12 @@ files:
         println("Hello, World!")
     }
   learner_created: false
+- name: capitalsNew.txt
+  visible: true
+  learner_created: true
+- name: capitals.txt
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/83/stages/461/implement
-status: Unchecked
-record: -1
+status: Solved
+record: 5
