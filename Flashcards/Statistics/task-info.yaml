@@ -479,7 +479,7 @@ files:
   visible: true
   text: France=Paris
   learner_created: true
-- name: src/flashcards/LongestWord.kt
+- name: src/flashcards/Practice.kt
   visible: true
   learner_created: true
 feedback_link: https://hyperskill.org/projects/83/stages/462/implement

@@ -5,7 +5,7 @@ import java.io.File
 fun main() {
     val deck = mutableMapOf<String, String>()
     do {
-        println("Input the action (add, remove, import, export, ask, list, exit):")
+        println("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):")
         val action = readLine()!!.toLowerCase()
         when (action) {
             "add" -> addTo(deck)
@@ -13,13 +13,33 @@ fun main() {
             "import" -> loadInto(deck)
             "export" -> dumpFrom(deck)
             "ask" -> if (deck.isNotEmpty()) askAbout(deck)
-            "list" -> printCards(deck)
+            "log" -> logAction()
+            "hardest card" -> hardestCard()
+            "reset stats" -> resetStats()
+            ":list" -> printCards(deck)
+            ":stats" -> printStats()
         }
     } while (action != "exit")
     println("Bye bye!")
 }
 
-fun printCards(deck: MutableMap<String, String>) {
+fun printStats() {
+    TODO("Not yet implemented")
+}
+
+fun resetStats() {
+    TODO("Not yet implemented")
+}
+
+fun hardestCard() {
+    TODO("Not yet implemented")
+}
+
+fun logAction() {
+    TODO("Not yet implemented")
+}
+
+private fun printCards(deck: MutableMap<String, String>) {
     deck.forEach { (front, back) -> println("(\"$front\" => \"$back\")") }
     val s = if (deck.size == 1) "" else "s"
     println("Total of ${deck.size} card$s.\n")
@@ -46,10 +66,10 @@ fun removeFrom(deck: MutableMap<String, String>) {
     println("The card:")
     val card = readLine()!!
     println(if (deck.remove(card) != null) {
-            "The card has been removed.\n"
-        } else {
-            "Can't remove \"$card\": there is no such card.\n"
-        }
+        "The card has been removed.\n"
+    } else {
+        "Can't remove \"$card\": there is no such card.\n"
+    }
     )
 }
 
@@ -82,13 +102,13 @@ fun loadInto(deck: MutableMap<String, String>) {
 fun askAbout(deck: Map<String, String>) {
     var lastCard = ""
     val pickRandomCard: () -> Pair<String, String> =
-        if (deck.size in (1..2)) {
-            // not enough cards to care about repeats
-            { anyCard(deck) }
-        } else {
-            // any card besides lastCard (captured!)
-            { anythingBut(lastCard, deck) }
-        }
+            if (deck.size in (1..2)) {
+                // not enough cards to care about repeats
+                { anyCard(deck) }
+            } else {
+                // any card besides lastCard (captured!)
+                { anythingBut(lastCard, deck) }
+            }
 
     println("How many times to ask?")
     val count = readLine()!!.toInt()
@@ -107,11 +127,10 @@ fun askAbout(deck: Map<String, String>) {
 }
 
 // simple strategy: don't care about repeats
-fun anyCard(deck: Map<String, String>): Pair<String, String> {
-    return with(deck.keys.random()) { Pair(this, deck[this]!!) }
-}
+fun anyCard(deck: Map<String, String>): Pair<String, String> =
+    with(deck.keys.random()) { Pair(this, deck[this]!!) }
 
-// no repeat strategy: avoid asking about same card twice in a row
+// no repeat strategy: don't ask about same card twice in a row
 fun anythingBut(lastCard: String, deck: Map<String, String>): Pair<String, String> {
     var card = deck.keys.random()
     while (card == lastCard) {
