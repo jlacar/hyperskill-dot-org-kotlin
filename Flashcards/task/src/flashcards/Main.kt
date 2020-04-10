@@ -16,7 +16,7 @@ fun main(args: Array<String>) {
 
 private fun menuLoop() {
     do {
-        printlnLog("\nInput the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):")
+        printlnLog("\nInput the action (add, remove, import, export, ask, exit, log, hardest, easiest, reset stats):")
         val action = readLineLog()!!.toLowerCase()
         when (action) {
             "add" -> add(getCard())
@@ -25,7 +25,8 @@ private fun menuLoop() {
             "export" -> writeCardsTo(getFile())
             "ask" -> if (deck.isNotEmpty()) quiz()
             "log" -> writeLogsTo(getFile())
-            "hardest card" -> hardestCard()
+            "hardest" -> hardestCard()
+            "easiest" -> easiestCard()
             "reset stats" -> resetStats()
             ":list" -> secretly("list of cards") { listCards() }
             ":logs" -> secretly("log dump") { showLogActivity() }
@@ -86,8 +87,36 @@ private fun printIOActionMessage(count: Int, action: String) {
 }
 
 fun resetStats() {
-    deck.forEach { it.mistakes = 0 }
+    deck.forEach {
+        it.asked = 0
+        it.mistakes = 0
+    }
     printlnLog("Card statistics has been reset.")
+}
+
+fun easiestCard() {
+    if (deck.filter { it.mistakes != 0}.size == deck.size) {
+        printlnLog("You haven't made any mistakes yet.")
+        return
+    }
+    val fewestMistakes: Int = deck.map(Card::mistakes).min() ?: 0
+    val easy: List<Card> = deck.filter { it.mistakes == fewestMistakes }
+    if (easy.size == deck.size) {
+        printlnLog("It's dead even: you've made $fewestMistakes on all of them.")
+        return
+    }
+    printlnLog(easiestMessage(easy))
+}
+
+fun easiestMessage(easiest: List<Card>): String {
+    val fewestMistakes: Int = easiest.first().mistakes
+    return if (easiest.size == 1) {
+        "The easiest card is \"${easiest.first().term}\". You have $fewestMistakes errors answering it."
+    } else {
+        easiest.map { "\"${it.term}\"" }.joinToString().let {
+            "The easiest cards are $it. You have made $fewestMistakes errors answering them."
+        }
+    }
 }
 
 fun hardestCard() {
@@ -96,17 +125,19 @@ fun hardestCard() {
         printlnLog("There are no cards with errors.")
         return
     }
-    printlnLog(hardestMessage(deck.filter { it.mistakes == mostMistakes }, mostMistakes))
+    printlnLog(hardestMessage(deck.filter { it.mistakes == mostMistakes }))
 }
 
-private fun hardestMessage(hardest: List<Card>, mostMistakes: Int): String =
-    if (hardest.size == 1) {
+private fun hardestMessage(hardest: List<Card>): String {
+    val mostMistakes = hardest.first().mistakes
+    return if (hardest.size == 1) {
         "The hardest card is \"${hardest.first().term}\". You have $mostMistakes errors answering it."
     } else {
         hardest.map { "\"${it.term}\"" }.joinToString().let {
             "The hardest cards are $it. You have $mostMistakes errors answering them."
         }
     }
+}
 
 private val ioLog = mutableListOf<String>()
 
@@ -125,6 +156,7 @@ fun quiz() {
     val count = readLineLog()!!.toInt()
     repeat(count) {
         val card = pickRandomCard()
+        card.asked++
         lastCard = card
 
         printlnLog("Print the definition of \"${card.term}\":")
