@@ -2,144 +2,193 @@ package flashcards
 
 import java.io.File
 
+class Card(val term: String, var def: String = "") {
+    var mistakes: Int = 0
+
+    companion object Unmarshaller {
+        val SEP = "•"
+        val NONE = Card(SEP, SEP)
+        fun fromString(text: String): Card {
+            val (term, def, mistakes) = text.split(SEP)
+            return Card(term, def).apply { this.mistakes = mistakes.toInt() }
+        }
+    }
+
+    override fun toString(): String = "$term$SEP$def$SEP$mistakes"
+    override fun equals(other: Any?): Boolean = other is Card && term == other.term
+    override fun hashCode(): Int = term.hashCode()
+}
+
+private val deck = mutableSetOf<Card>()
+
 fun main() {
-    val deck = mutableMapOf<String, String>()
     do {
-        println("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):")
-        val action = readLine()!!.toLowerCase()
+        printlnLog("\nInput the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):")
+        val action = readLineLog()!!.toLowerCase()
         when (action) {
-            "add" -> addTo(deck)
-            "remove" -> removeFrom(deck)
-            "import" -> loadInto(deck)
-            "export" -> dumpFrom(deck)
-            "ask" -> if (deck.isNotEmpty()) askAbout(deck)
-            "log" -> logAction()
+            "add" -> add(getCard())
+            "remove" -> remove(getCard())
+            "import" -> readCardsFrom(getFile())
+            "export" -> writeCardsTo(getFile())
+            "ask" -> if (deck.isNotEmpty()) quiz()
+            "log" -> writeLogsTo(getFile())
             "hardest card" -> hardestCard()
             "reset stats" -> resetStats()
-            ":list" -> printCards(deck)
-            ":stats" -> printStats()
+            ":list" -> backChannel("list of cards", { listCards() })
+            ":logs" -> backChannel("log dump", { showLogActivity() })
         }
     } while (action != "exit")
-    println("Bye bye!")
+    printlnLog("Bye bye!")
 }
 
-fun printStats() {
-    TODO("Not yet implemented")
-}
-
-fun resetStats() {
-    TODO("Not yet implemented")
-}
-
-fun hardestCard() {
-    TODO("Not yet implemented")
-}
-
-fun logAction() {
-    TODO("Not yet implemented")
-}
-
-private fun printCards(deck: MutableMap<String, String>) {
-    deck.forEach { (front, back) -> println("(\"$front\" => \"$back\")") }
-    val s = if (deck.size == 1) "" else "s"
-    println("Total of ${deck.size} card$s.\n")
-}
-
-fun addTo(deck: MutableMap<String, String>) {
-    println("The card:")
-    val card = readLine()!!
-    if (deck.containsKey(card)) {
-        println("The card \"$card\" already exists.\n")
+fun add(card: Card) {
+    deck.find { it == card }?.run {
+        printlnLog("The card \"$term\" already exists.\n")
         return
     }
-    println("The definition of the card:")
-    val definition = readLine()!!
-    if (deck.containsValue(definition)) {
-        println("The definition \"$definition\" already exists.\n")
+    printlnLog("The definition of the card:")
+    val def = readLineLog()!!
+    deck.find { it.def == def }?.run {
+        printlnLog("The definition \"$def\" already exists.")
         return
     }
-    deck[card] = definition
-    println("The pair (\"$card\":\"$definition\") has been added.\n")
+    deck.add(Card(card.term, def))
+    printlnLog("The pair (\"${card.term}\":\"$def\") has been added.")
 }
 
-fun removeFrom(deck: MutableMap<String, String>) {
-    println("The card:")
-    val card = readLine()!!
-    println(if (deck.remove(card) != null) {
-        "The card has been removed.\n"
-    } else {
-        "Can't remove \"$card\": there is no such card.\n"
-    }
-    )
+fun remove(card: Card) {
+    printlnLog(if (deck.remove(card)) "The card has been removed."
+    else "Can't remove \"${card.term}\": there is no such card.")
 }
 
-// Implementation note: using Map.Entry.toString() to dump pairs into a file
-const val SEPARATOR = "="
-
-fun dumpFrom(deck: Map<String, String>) {
-    println("File name:")
-    val outputFile = File(readLine()!!)
-    outputFile.writeText(deck.map { "$it" }.joinToString("\n"))
-    println("${deck.size} cards have been saved.")
+fun writeCardsTo(outputFile: File) {
+    writeTo(outputFile, deck.joinToString("\n", postfix = "\n"))
+    printCardActionMessage(deck.size, "saved")
 }
 
-fun loadInto(deck: MutableMap<String, String>) {
-    println("File name:")
-    val inputFile = File(readLine()!!)
+fun readCardsFrom(inputFile: File) {
     if (!inputFile.exists()) {
-        println("File not found.\n")
+        printlnLog("File not found.")
         return
     }
     var count = 0
     inputFile.forEachLine {
+        replace(Card.fromString(it))
         count++
-        val (card, definition) = it.split(SEPARATOR)
-        deck[card] = definition
     }
-    println("$count cards have been loaded.\n")
+    printCardActionMessage(count, "loaded")
 }
 
-fun askAbout(deck: Map<String, String>) {
-    var lastCard = ""
-    val pickRandomCard: () -> Pair<String, String> =
-            if (deck.size in (1..2)) {
-                // not enough cards to care about repeats
-                { anyCard(deck) }
-            } else {
-                // any card besides lastCard (captured!)
-                { anythingBut(lastCard, deck) }
-            }
+private fun replace(card: Card) {
+    deck.remove(card)
+    deck.add(card)
+}
 
-    println("How many times to ask?")
-    val count = readLine()!!.toInt()
+private fun printCardActionMessage(count: Int, action: String) {
+    printlnLog(when (count) {
+        1 -> "1 card has"
+        else -> "$count cards have"
+    }.let { "$it been $action." })
+}
+
+fun resetStats() {
+    deck.forEach { it.mistakes = 0 }
+    printlnLog("Card statistics has been reset.")
+}
+
+fun hardestCard() {
+    val maxMistakes: Int = deck.maxBy { it.mistakes }?.mistakes ?: 0
+    if (maxMistakes == 0) {
+        printlnLog("There are no cards with errors.")
+        return
+    }
+    val hardestCards = deck.filter { it.mistakes == maxMistakes }
+    if (hardestCards.size == 1) {
+        val hardest = hardestCards.first()
+        printlnLog("The hardest card is \"${hardest.term}\". You have $maxMistakes errors answering it.")
+    } else {
+        val hardestTerms = hardestCards.map { "\"${it.term}\"" }.joinToString()
+        printlnLog("The hardest cards are $hardestTerms. You have $maxMistakes errors answering them.")
+    }
+}
+
+fun writeLogsTo(outputFile: File) {
+    writeTo(outputFile, ioLog.joinToString("\n", postfix = "\n"))
+    printlnLog("The log has been saved.")
+}
+
+private fun getCard(): Card {
+    printlnLog("The card:")
+    return Card(readLineLog()!!)
+}
+
+private fun getFile(): File {
+    printlnLog("File name:")
+    return File(readLineLog()!!)
+}
+
+fun writeTo(outputFile: File, text: String) = outputFile.writeText(text)
+
+fun quiz() {
+    var lastCard: Card = Card.NONE
+    val pickRandomCard: () -> Card = if (deck.size in (1..2)) anyCard else { { anythingBut(lastCard) } }
+
+    printlnLog("How many times to ask?")
+    val count = readLineLog()!!.toInt()
     repeat(count) {
-        val (card, definition) = pickRandomCard()
+        val card = pickRandomCard()
         lastCard = card
 
-        println("Print the definition of \"$card\":")
-        val answer = readLine()!!
-        if (definition == answer) {
-            println("Correct answer.")
+        printlnLog("Print the definition of \"${card.term}\":")
+        val answer = readLineLog()!!
+        if (answer == card.def) {
+            printlnLog("Correct answer.")
         } else {
-            println("Wrong answer. The correct one is \"${definition}\"${hintFor(answer, deck)}")
+            card.mistakes++
+            printlnLog("Wrong answer. The correct one is \"${card.def}\"${hintFor(answer)}")
         }
     }
 }
 
 // simple strategy: don't care about repeats
-fun anyCard(deck: Map<String, String>): Pair<String, String> =
-    with(deck.keys.random()) { Pair(this, deck[this]!!) }
+val anyCard: () -> Card = { deck.random() }
 
 // no repeat strategy: don't ask about same card twice in a row
-fun anythingBut(lastCard: String, deck: Map<String, String>): Pair<String, String> {
-    var card = deck.keys.random()
+fun anythingBut(lastCard: Card): Card {
+    var card = deck.random()
     while (card == lastCard) {
-        card = deck.keys.random()
+        card = deck.random()
     }
-    return Pair(card, deck[card]!!)
+    return card
 }
 
-private fun hintFor(answer: String, deck: Map<String, String>): String {
-    val matchingCard = deck.entries.find { it.value == answer }
-    return matchingCard?.let { ", you've just written the definition of \"${it.key}\"." } ?: "."
+private val ioLog = mutableListOf<String>()
+
+private fun backChannel(label: String, adminRoutine: () -> Unit) {
+    val down = "\u25BC".repeat(10)
+    val up = "\u25B2".repeat(10)
+    println("$down $label $down")
+    adminRoutine()
+    println("$up $label $up")
 }
+
+private fun showLogActivity() = ioLog.forEach { println(it) }
+
+private fun listCards() {
+    deck.forEach { println(it) }
+    val s = if (deck.size == 1) "" else "s"
+    println("Total of ${deck.size} card$s.")
+}
+
+private fun hintFor(answer: String): String {
+    deck.find { it.def == answer }?.run {
+        return@hintFor ", you've just written the definition of \"${this.term}\"."
+    }
+    return "."
+}
+
+private fun printlnLog(message: Any) {
+    println(message).also { ioLog.addAll(message.toString().split("\n")) }
+}
+
+private fun readLineLog(): String? = readLine()?.also { ioLog.add("$it") }

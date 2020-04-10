@@ -482,6 +482,9 @@ files:
 - name: src/flashcards/Practice.kt
   visible: true
   learner_created: true
+- name: testLog.txt
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/83/stages/462/implement
 status: Failed
 record: -1
