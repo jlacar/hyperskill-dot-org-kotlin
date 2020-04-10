@@ -11,7 +11,6 @@ fun main(args: Array<String>) {
     }
     commandLineFlags.getString("import")?.also { readCardsFrom(File(it), verbose = false) }
     menuLoop()
-    printlnLog("Bye bye!")
     commandLineFlags.getString("export")?.also { writeCardsTo(File(it)) }
 }
 
@@ -30,6 +29,8 @@ private fun menuLoop() {
             "reset stats" -> resetStats()
             ":list" -> secretly("list of cards") { listCards() }
             ":logs" -> secretly("log dump") { showLogActivity() }
+            "exit" -> printlnLog("Bye bye!")
+            else -> printlnLog("Unknown command: $action")
         }
     } while (action != "exit")
 }
@@ -56,12 +57,12 @@ fun remove(card: Card) {
 
 fun writeCardsTo(outputFile: File) {
     writeTo(outputFile, deck.joinToString("\n", postfix = "\n"))
-    printCardActionMessage(deck.size, "saved to ${outputFile.name}")
+    printIOActionMessage(deck.size, "saved to ${outputFile.name}")
 }
 
 fun readCardsFrom(inputFile: File, verbose: Boolean = true) {
     if (!inputFile.exists()) {
-        if (verbose) printlnLog("File not found.")
+        if (verbose) printlnLog("File ${inputFile.name} not found.")
         return
     }
     var count = 0
@@ -69,7 +70,7 @@ fun readCardsFrom(inputFile: File, verbose: Boolean = true) {
         replace(Card.fromString(it))
         count++
     }
-    printCardActionMessage(count, "loaded")
+    printIOActionMessage(count, "loaded from ${inputFile.name}")
 }
 
 private fun replace(card: Card) {
@@ -77,7 +78,7 @@ private fun replace(card: Card) {
     deck.add(card)
 }
 
-private fun printCardActionMessage(count: Int, action: String) {
+private fun printIOActionMessage(count: Int, action: String) {
     printlnLog(when (count) {
         1 -> "1 card has"
         else -> "$count cards have"
