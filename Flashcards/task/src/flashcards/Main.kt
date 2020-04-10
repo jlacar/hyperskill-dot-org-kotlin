@@ -2,26 +2,20 @@ package flashcards
 
 import java.io.File
 
-class Card(val term: String, var def: String = "") {
-    var mistakes: Int = 0
-
-    companion object Unmarshaller {
-        val SEP = "•"
-        val NONE = Card(SEP, SEP)
-        fun fromString(text: String): Card {
-            val (term, def, mistakes) = text.split(SEP)
-            return Card(term, def).apply { this.mistakes = mistakes.toInt() }
-        }
-    }
-
-    override fun toString(): String = "$term$SEP$def$SEP$mistakes"
-    override fun equals(other: Any?): Boolean = other is Card && term == other.term
-    override fun hashCode(): Int = term.hashCode()
-}
-
 private val deck = mutableSetOf<Card>()
 
-fun main() {
+fun main(args: Array<String>) {
+    val commandLineFlags: Flag = Flag(args).apply {
+        optional("import")
+        optional("export")
+    }
+    commandLineFlags.getString("import")?.also { readCardsFrom(File(it), verbose = false) }
+    menuLoop()
+    printlnLog("Bye bye!")
+    commandLineFlags.getString("export")?.also { writeCardsTo(File(it)) }
+}
+
+private fun menuLoop() {
     do {
         printlnLog("\nInput the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):")
         val action = readLineLog()!!.toLowerCase()
@@ -34,11 +28,10 @@ fun main() {
             "log" -> writeLogsTo(getFile())
             "hardest card" -> hardestCard()
             "reset stats" -> resetStats()
-            ":list" -> backChannel("list of cards", { listCards() })
-            ":logs" -> backChannel("log dump", { showLogActivity() })
+            ":list" -> secretly("list of cards") { listCards() }
+            ":logs" -> secretly("log dump") { showLogActivity() }
         }
     } while (action != "exit")
-    printlnLog("Bye bye!")
 }
 
 fun add(card: Card) {
@@ -48,7 +41,7 @@ fun add(card: Card) {
     }
     printlnLog("The definition of the card:")
     val def = readLineLog()!!
-    deck.find { it.def == def }?.run {
+    deck.find { it.isDefinedAs(def) }?.run {
         printlnLog("The definition \"$def\" already exists.")
         return
     }
@@ -63,12 +56,12 @@ fun remove(card: Card) {
 
 fun writeCardsTo(outputFile: File) {
     writeTo(outputFile, deck.joinToString("\n", postfix = "\n"))
-    printCardActionMessage(deck.size, "saved")
+    printCardActionMessage(deck.size, "saved to ${outputFile.name}")
 }
 
-fun readCardsFrom(inputFile: File) {
+fun readCardsFrom(inputFile: File, verbose: Boolean = true) {
     if (!inputFile.exists()) {
-        printlnLog("File not found.")
+        if (verbose) printlnLog("File not found.")
         return
     }
     var count = 0
@@ -97,34 +90,28 @@ fun resetStats() {
 }
 
 fun hardestCard() {
-    val maxMistakes: Int = deck.maxBy { it.mistakes }?.mistakes ?: 0
-    if (maxMistakes == 0) {
+    val mostMistakes: Int = deck.map(Card::mistakes).max() ?: 0
+    if (mostMistakes == 0) {
         printlnLog("There are no cards with errors.")
         return
     }
-    val hardestCards = deck.filter { it.mistakes == maxMistakes }
-    if (hardestCards.size == 1) {
-        val hardest = hardestCards.first()
-        printlnLog("The hardest card is \"${hardest.term}\". You have $maxMistakes errors answering it.")
-    } else {
-        val hardestTerms = hardestCards.map { "\"${it.term}\"" }.joinToString()
-        printlnLog("The hardest cards are $hardestTerms. You have $maxMistakes errors answering them.")
-    }
+    printlnLog(hardestMessage(deck.filter { it.mistakes == mostMistakes }, mostMistakes))
 }
+
+private fun hardestMessage(hardest: List<Card>, mostMistakes: Int): String =
+    if (hardest.size == 1) {
+        "The hardest card is \"${hardest.first().term}\". You have $mostMistakes errors answering it."
+    } else {
+        hardest.map { "\"${it.term}\"" }.joinToString().let {
+            "The hardest cards are $it. You have $mostMistakes errors answering them."
+        }
+    }
+
+private val ioLog = mutableListOf<String>()
 
 fun writeLogsTo(outputFile: File) {
     writeTo(outputFile, ioLog.joinToString("\n", postfix = "\n"))
     printlnLog("The log has been saved.")
-}
-
-private fun getCard(): Card {
-    printlnLog("The card:")
-    return Card(readLineLog()!!)
-}
-
-private fun getFile(): File {
-    printlnLog("File name:")
-    return File(readLineLog()!!)
 }
 
 fun writeTo(outputFile: File, text: String) = outputFile.writeText(text)
@@ -150,11 +137,21 @@ fun quiz() {
     }
 }
 
+private fun getCard(): Card {
+    printlnLog("The card:")
+    return Card(readLineLog()!!)
+}
+
+private fun getFile(): File {
+    printlnLog("File name:")
+    return File(readLineLog()!!)
+}
+
 // simple strategy: don't care about repeats
-val anyCard: () -> Card = { deck.random() }
+private val anyCard: () -> Card = { deck.random() }
 
 // no repeat strategy: don't ask about same card twice in a row
-fun anythingBut(lastCard: Card): Card {
+private fun anythingBut(lastCard: Card): Card {
     var card = deck.random()
     while (card == lastCard) {
         card = deck.random()
@@ -162,9 +159,7 @@ fun anythingBut(lastCard: Card): Card {
     return card
 }
 
-private val ioLog = mutableListOf<String>()
-
-private fun backChannel(label: String, adminRoutine: () -> Unit) {
+private fun secretly(label: String, adminRoutine: () -> Unit) {
     val down = "\u25BC".repeat(10)
     val up = "\u25B2".repeat(10)
     println("$down $label $down")
@@ -181,7 +176,7 @@ private fun listCards() {
 }
 
 private fun hintFor(answer: String): String {
-    deck.find { it.def == answer }?.run {
+    deck.find { it.isDefinedAs(answer) }?.run {
         return@hintFor ", you've just written the definition of \"${this.term}\"."
     }
     return "."
