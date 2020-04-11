@@ -5,18 +5,18 @@ import java.io.File
 private val deck = mutableSetOf<Card>()
 
 fun main(args: Array<String>) {
-    val commandLineFlags: Flag = Flag(args).apply {
-        optional("import")
-        optional("export")
+    val commandLineOptions: Flag = Flag(args).apply {
+        option("import")
+        option("export")
     }
-    commandLineFlags.getString("import")?.also { readCardsFrom(File(it), verbose = false) }
+    commandLineOptions.get("import")?.also { readCardsFrom(File(it), verbose = false) }
     menuLoop()
-    commandLineFlags.getString("export")?.also { writeCardsTo(File(it)) }
+    commandLineOptions.get("export")?.also { writeCardsTo(File(it)) }
 }
 
 private fun menuLoop() {
     do {
-        printlnLog("\nInput the action (add, remove, import, export, ask, exit, log, hardest, easiest, reset stats):")
+        printlnLog("\nInput the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):")
         val action = readLineLog()!!.toLowerCase()
         when (action) {
             "add" -> add(getCard())
@@ -27,7 +27,9 @@ private fun menuLoop() {
             "log" -> writeLogsTo(getFile())
             "hardest" -> hardestCard()
             "easiest" -> easiestCard()
+            "not asked" -> notAsked()
             "reset stats" -> resetStats()
+            ":stats" -> secretly("stats") { showStats() }
             ":list" -> secretly("list of cards") { listCards() }
             ":logs" -> secretly("log dump") { showLogActivity() }
             "exit" -> printlnLog("Bye bye!")
@@ -36,7 +38,13 @@ private fun menuLoop() {
     } while (action != "exit")
 }
 
-fun add(card: Card) {
+private fun notAsked() {
+    val notYetQuizzed = deck.filter { it.asked == 0 }
+    notYetQuizzed.forEach { printlnLog("\"${it.term}\" : \"${it.def}\"") }
+    printListSummary(notYetQuizzed.size, "quizzed on yet", negateAction = true)
+}
+
+private fun add(card: Card) {
     deck.find { it == card }?.run {
         printlnLog("The card \"$term\" already exists.\n")
         return
@@ -51,17 +59,17 @@ fun add(card: Card) {
     printlnLog("The pair (\"${card.term}\":\"$def\") has been added.")
 }
 
-fun remove(card: Card) {
+private fun remove(card: Card) {
     printlnLog(if (deck.remove(card)) "The card has been removed."
     else "Can't remove \"${card.term}\": there is no such card.")
 }
 
-fun writeCardsTo(outputFile: File) {
+private fun writeCardsTo(outputFile: File) {
     writeTo(outputFile, deck.joinToString("\n", postfix = "\n"))
-    printIOActionMessage(deck.size, "saved to ${outputFile.name}")
+    printListSummary(deck.size, "saved to ${outputFile.name}")
 }
 
-fun readCardsFrom(inputFile: File, verbose: Boolean = true) {
+private fun readCardsFrom(inputFile: File, verbose: Boolean = true) {
     if (!inputFile.exists()) {
         if (verbose) printlnLog("File ${inputFile.name} not found.")
         return
@@ -71,7 +79,7 @@ fun readCardsFrom(inputFile: File, verbose: Boolean = true) {
         replace(Card.fromString(it))
         count++
     }
-    printIOActionMessage(count, "loaded from ${inputFile.name}")
+    printListSummary(count, "loaded from ${inputFile.name}")
 }
 
 private fun replace(card: Card) {
@@ -79,14 +87,15 @@ private fun replace(card: Card) {
     deck.add(card)
 }
 
-private fun printIOActionMessage(count: Int, action: String) {
+private fun printListSummary(count: Int, action: String, negateAction: Boolean = false) {
+    val not = if (negateAction) "n't" else ""
     printlnLog(when (count) {
         1 -> "1 card has"
         else -> "$count cards have"
-    }.let { "$it been $action." })
+    }.let { "$it$not been $action." })
 }
 
-fun resetStats() {
+private fun resetStats() {
     deck.forEach {
         it.asked = 0
         it.mistakes = 0
@@ -94,61 +103,50 @@ fun resetStats() {
     printlnLog("Card statistics has been reset.")
 }
 
-fun easiestCard() {
-    if (deck.filter { it.mistakes != 0}.size == deck.size) {
-        printlnLog("You haven't made any mistakes yet.")
+private fun easiestCard() = reportExtremeStat({ it.min() }, "right", "best")
+
+private fun hardestCard() = reportExtremeStat({ it.max() }, "wrong", "least", bailOnNoMistakes = true)
+
+private fun reportExtremeStat(query: (List<Double>) -> Double?, result: String, adjective: String,
+                              bailOnNoMistakes: Boolean = false) {
+    val failRates = deck.mapNotNull { it.degreeOfDifficulty() }
+    if (nothingIn(failRates)) {
         return
     }
-    val fewestMistakes: Int = deck.map(Card::mistakes).min() ?: 0
-    val easy: List<Card> = deck.filter { it.mistakes == fewestMistakes }
-    if (easy.size == deck.size) {
-        printlnLog("It's dead even: you've made $fewestMistakes on all of them.")
-        return
+    if (failRates.max() == 0.0) {
+        printlnLog("You haven't made any mistakes yet!")
+        if (bailOnNoMistakes) return
     }
-    printlnLog(easiestMessage(easy))
+    val theMostest = query(failRates)
+    printlnLog(trackRecord(deck.filter { it.degreeOfDifficulty() == theMostest }, result, adjective))
 }
 
-fun easiestMessage(easiest: List<Card>): String {
-    val fewestMistakes: Int = easiest.first().mistakes
-    return if (easiest.size == 1) {
-        "The easiest card is \"${easiest.first().term}\". You have $fewestMistakes errors answering it."
+private fun nothingIn(scores: List<Double>): Boolean =
+    if (scores.isEmpty()) {
+        printlnLog("No data available: quiz yourself with the 'ask' command first.")
+        true
     } else {
-        easiest.map { "\"${it.term}\"" }.joinToString().let {
-            "The easiest cards are $it. You have made $fewestMistakes errors answering them."
-        }
+        false
     }
-}
 
-fun hardestCard() {
-    val mostMistakes: Int = deck.map(Card::mistakes).max() ?: 0
-    if (mostMistakes == 0) {
-        printlnLog("There are no cards with errors.")
-        return
-    }
-    printlnLog(hardestMessage(deck.filter { it.mistakes == mostMistakes }))
-}
-
-private fun hardestMessage(hardest: List<Card>): String {
-    val mostMistakes = hardest.first().mistakes
-    return if (hardest.size == 1) {
-        "The hardest card is \"${hardest.first().term}\". You have $mostMistakes errors answering it."
+private fun trackRecord(data: List<Card>, result: String, adjective: String): String =
+    if (data.size == 1) {
+        "The card you keep getting $result is \"${data.first().term}\". ${data.first().difficultyAsString()}"
     } else {
-        hardest.map { "\"${it.term}\"" }.joinToString().let {
-            "The hardest cards are $it. You have $mostMistakes errors answering them."
-        }
+        data.joinToString("\n", prefix = "The cards you $adjective remember are:\n", postfix = "\n")
+            { "\"${it.term}\": ${it.difficultyAsString()}" }
     }
-}
 
 private val ioLog = mutableListOf<String>()
 
-fun writeLogsTo(outputFile: File) {
+private fun writeLogsTo(outputFile: File) {
     writeTo(outputFile, ioLog.joinToString("\n", postfix = "\n"))
     printlnLog("The log has been saved.")
 }
 
-fun writeTo(outputFile: File, text: String) = outputFile.writeText(text)
+private fun writeTo(outputFile: File, text: String) = outputFile.writeText(text)
 
-fun quiz() {
+private fun quiz() {
     var lastCard: Card = Card.NONE
     val pickRandomCard: () -> Card = if (deck.size in (1..2)) anyCard else { { anythingBut(lastCard) } }
 
@@ -202,8 +200,13 @@ private fun secretly(label: String, adminRoutine: () -> Unit) {
 
 private fun showLogActivity() = ioLog.forEach { println(it) }
 
-private fun listCards() {
-    deck.forEach { println(it) }
+private fun showStats() = deck.forEach { println("\"${it.term}\": ${it.difficultyAsString()}") }
+        .also { printTotalCards() }
+
+private fun listCards() = deck.forEach { println(it) }
+        .also { printTotalCards() }
+
+private fun printTotalCards() {
     val s = if (deck.size == 1) "" else "s"
     println("Total of ${deck.size} card$s.")
 }
@@ -219,4 +222,4 @@ private fun printlnLog(message: Any) {
     println(message).also { ioLog.addAll(message.toString().split("\n")) }
 }
 
-private fun readLineLog(): String? = readLine()?.also { ioLog.add("$it") }
+private fun readLineLog(): String? = readLine()?.also { ioLog.add(it) }

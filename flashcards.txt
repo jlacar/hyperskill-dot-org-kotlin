@@ -1,5 +1,5 @@
-Silver•Bullet•0
-Black•Mamba•0
-Yellow•Jacket•0
-Blue•Lagoon•0
-Pink•Panther•0
+Black•Mamba•4•1
+Yellow•Fever•4•1
+Blue•Thunder•0•0
+Blackish•Orca•3•2
+Pink•Flamingo•2•1

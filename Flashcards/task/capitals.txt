@@ -1,2 +1,2 @@
-France•Paris•3
-Russia•Moscow•2
+France•Paris•4•3
+Russia•Moscow•3•2

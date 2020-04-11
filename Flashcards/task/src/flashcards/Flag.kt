@@ -1,28 +1,32 @@
 package flashcards
 
+import java.lang.RuntimeException
+
 /**
  * Manages command line arguments.
  *
  * This is a poor man's variant of the Golang flag package
  */
-class Flag(val args: Array<String>) {
-    val cliOptions = mutableMapOf<String, Any>()
+class Flag(private val args: Array<String>) {
+    private val cliOptions = mutableMapOf<String, String?>()
 
-    constructor(args: Array<String>, required: Array<String>) : this(args) {
-        TODO("Required parameters may be supported in the future.")
-    }
-
-    fun optional(name: String) = extractOption(name)
-
-    private fun extractOption(name: String, isModeFlag: Boolean = false) {
-        if (isModeFlag) {
-            cliOptions[name] = true
-        } else {
-            (args.indexOf("-$name") + 1).let {
-                if (it in 1 until args.size) cliOptions[name] = args[it]
+    fun option(name: String, default: String? = null, isModeFlag: Boolean = false) {
+        val optionIndex = args.indexOf("-$name")
+        if (optionIndex >= 0) {
+            cliOptions[name] = if (isModeFlag) {
+                "true"
+            } else {
+                if (noArgumentFor(optionIndex)) throw RuntimeException("missing argument for option -$name")
+                args[optionIndex + 1]
             }
+        } else {
+            cliOptions[name] = default
         }
     }
 
-    fun getString(name: String): String? = cliOptions[name]?.toString()
+    private fun noArgumentFor(optionIndex: Int): Boolean =
+        optionIndex !in args.indices || args[optionIndex + 1].startsWith("-")
+
+    fun get(name: String): String? = cliOptions[name]
+    fun getMode(name: String): Boolean = (cliOptions[name] ?: "false") == "true"
 }

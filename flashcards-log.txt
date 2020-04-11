@@ -1,0 +1,64 @@
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+import
+File name:
+flashcards.txt
+6 cards have been loaded from flashcards.txt.
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+:list
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+hardest
+The card you've tended to get wrong is "Blackish". Correctly answered 1 of 3 times (33.33%)
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+easiest
+The card you've tended to get right is "Silver". Correctly answered 1 of 1 time (100.00%)
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+ask
+How many times to ask?
+1
+Print the definition of "Yellow":
+Fever
+Correct answer.
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+easiest
+The card you've tended to get right is "Silver". Correctly answered 1 of 1 time (100.00%)
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+remove
+The card:
+Silver
+The card has been removed.
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+easiest
+The cards you did the best with are:
+"Black": Correctly answered 3 of 4 times (75.00%)
+"Yellow": Correctly answered 3 of 4 times (75.00%)
+
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+:stats
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+:list
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+not asked
+"Blue" : "Thunder"
+1 card hasn't been quizzed on yet.
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+export
+File name:
+flashcards.txt
+5 cards have been saved to flashcards.txt.
+
+Input the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):
+log
+File name:
+flashcards-log.txt
