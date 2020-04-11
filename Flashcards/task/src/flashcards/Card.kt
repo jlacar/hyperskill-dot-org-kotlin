@@ -11,7 +11,7 @@ class Card(val term: String, var def: String = "") {
     } else {
         val s = if (asked == 1) "" else "s"
         val percentCorrect = "%.2f%%".format(100.00 - degreeOfDifficulty()!!)
-        "Correctly answered ${asked - mistakes} of $asked time$s ($percentCorrect)"
+        "Got it ${asked - mistakes} of $asked time$s ($percentCorrect)"
     }
 
     companion object Unmarshaller {

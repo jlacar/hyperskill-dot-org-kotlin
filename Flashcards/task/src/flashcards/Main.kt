@@ -6,25 +6,25 @@ private val deck = mutableSetOf<Card>()
 
 fun main(args: Array<String>) {
     val commandLineOptions: Flag = Flag(args).apply {
-        option("import", "flashcards.txt")
-        option("export", "flashcards.txt")
+        option("import")
+        option("export")
     }
     commandLineOptions.get("import")?.also { readCardsFrom(File(it), verbose = false) }
-    menuLoop()
+    menuLoop(commandLineOptions)
     commandLineOptions.get("export")?.also { writeCardsTo(File(it)) }
 }
 
-private fun menuLoop() {
+private fun menuLoop(options: Flag) {
     do {
         printlnLog("\nInput the action (add, remove, import, export, ask, exit, log, hardest, easiest, not asked, reset stats):")
         val action = readLineLog()!!.toLowerCase()
         when (action) {
             "add" -> add(getCard())
             "remove" -> remove(getCard())
-            "import" -> readCardsFrom(getFile())
-            "export" -> writeCardsTo(getFile())
+            "import" -> getFile(options.get("import"))?.also { readCardsFrom(it) }
+            "export" -> getFile(options.get("export"))?.also { writeCardsTo(it) }
             "ask" -> if (deck.isNotEmpty()) quiz()
-            "log" -> writeLogsTo(getFile())
+            "log" -> getFile(options.get("import"))?.also { writeLogsTo(it) }
             "hardest" -> hardestCard()
             "easiest" -> easiestCard()
             "not asked" -> notAsked()
@@ -88,11 +88,11 @@ private fun replace(card: Card) {
 }
 
 private fun printListSummary(count: Int, action: String, negateAction: Boolean = false) {
-    val not = if (negateAction) "n't" else ""
+    val nt = if (negateAction) "n't" else ""
     printlnLog(when (count) {
-        1 -> "1 card has"
-        else -> "$count cards have"
-    }.let { "$it$not been $action." })
+        1 -> " has$nt"
+        else -> "s have$nt"
+    }.let { "$count card$it been $action." })
 }
 
 private fun resetStats() {
@@ -141,7 +141,7 @@ private val ioLog = mutableListOf<String>()
 
 private fun writeLogsTo(outputFile: File) {
     writeTo(outputFile, ioLog.joinToString("\n", postfix = "\n"))
-    printlnLog("The log has been saved.")
+    printlnLog("The log has been saved to ${outputFile.name}.")
 }
 
 private fun writeTo(outputFile: File, text: String) = outputFile.writeText(text)
@@ -173,9 +173,13 @@ private fun getCard(): Card {
     return Card(readLineLog()!!)
 }
 
-private fun getFile(): File {
-    printlnLog("File name:")
-    return File(readLineLog()!!)
+private fun getFile(defaultName: String?): File? {
+    val default = if (defaultName.isNullOrBlank()) "" else " ($defaultName)"
+    printlnLog("File name$default:")
+    val name = readLineLog()!!
+    return if (name.isNotBlank()) File(name)
+        else if (defaultName.isNullOrBlank()) null
+        else File(defaultName)
 }
 
 // simple strategy: don't care about repeats
