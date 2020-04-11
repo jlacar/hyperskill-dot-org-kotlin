@@ -6,8 +6,8 @@ private val deck = mutableSetOf<Card>()
 
 fun main(args: Array<String>) {
     val commandLineOptions: Flag = Flag(args).apply {
-        option("import")
-        option("export")
+        option("import", "flashcards.txt")
+        option("export", "flashcards.txt")
     }
     commandLineOptions.get("import")?.also { readCardsFrom(File(it), verbose = false) }
     menuLoop()
@@ -133,7 +133,7 @@ private fun trackRecord(data: List<Card>, result: String, adjective: String): St
     if (data.size == 1) {
         "The card you keep getting $result is \"${data.first().term}\". ${data.first().difficultyAsString()}"
     } else {
-        data.joinToString("\n", prefix = "The cards you $adjective remember are:\n", postfix = "\n")
+        data.joinToString("\n", prefix = "The cards you $adjective remember are:\n")
             { "\"${it.term}\": ${it.difficultyAsString()}" }
     }
 
@@ -159,7 +159,7 @@ private fun quiz() {
 
         printlnLog("Print the definition of \"${card.term}\":")
         val answer = readLineLog()!!
-        if (answer == card.def) {
+        if (card.isDefinedAs(answer)) {
             printlnLog("Correct answer.")
         } else {
             card.mistakes++
@@ -201,15 +201,10 @@ private fun secretly(label: String, adminRoutine: () -> Unit) {
 private fun showLogActivity() = ioLog.forEach { println(it) }
 
 private fun showStats() = deck.forEach { println("\"${it.term}\": ${it.difficultyAsString()}") }
-        .also { printTotalCards() }
+        .also { printListSummary(deck.size, "defined") }
 
-private fun listCards() = deck.forEach { println(it) }
-        .also { printTotalCards() }
-
-private fun printTotalCards() {
-    val s = if (deck.size == 1) "" else "s"
-    println("Total of ${deck.size} card$s.")
-}
+private fun listCards() = deck.forEach { println("\"${it.term}\": \"${it.def}\" (${it.asked - it.mistakes}/${it.asked}) ${it.mistakes} mistakes" ) }
+        .also { printListSummary(deck.size, "defined") }
 
 private fun hintFor(answer: String): String {
     deck.find { it.isDefinedAs(answer) }?.run {

@@ -1,5 +1,6 @@
-Black•Mamba•4•1
-Yellow•Fever•4•1
-Blue•Thunder•0•0
-Blackish•Orca•3•2
-Pink•Flamingo•2•1
+Black•Mamba•5•1
+Yellow•Fever•5•1
+Blue•Thunder•1•0
+Blackish•Orca•4•3
+Pink•Flamingo•3•2
+Red•Dragon•0•0
