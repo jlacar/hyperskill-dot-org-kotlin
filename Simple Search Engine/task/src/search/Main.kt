@@ -8,7 +8,7 @@ fun main() {
         """${header("Menu")}
         |1. Find a person
         |2. Print all people")
-        |println("0. Exit")""".trimMargin().also(::println)
+        |0. Exit""".trimMargin().also(::println)
 
         val choice = readLine()!!.toInt()
         when (choice) {
