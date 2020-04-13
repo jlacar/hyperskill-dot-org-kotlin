@@ -1,12 +1,9 @@
+import org.hyperskill.hstest.v6.testcase.TestCase;
 import org.hyperskill.hstest.v6.stage.BaseStageTest;
 import org.hyperskill.hstest.v6.testcase.CheckResult;
-import org.hyperskill.hstest.v6.testcase.TestCase;
 import search.MainKt;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 class TestClue {
     String input;
@@ -22,52 +19,49 @@ public class SimpleSearchEngineTest extends BaseStageTest<TestClue> {
     }
 
     public static final String test1 =
-            "2\n" +
-            "0";
+        "2\n" +
+        "0";
 
     public static final String test2 =
-            "1\n" +
-            "burgess\n" +
-            "0";
+        "1\n" +
+        "qwerty\n" +
+        "0";
 
     public static final String test3 =
-            "1\n" +
-            "erick\n" +
-            "0";
+        "1\n" +
+        "Leopold\n" +
+        "0";
 
     public static final String test4 =
-            "3\n" +
-            "1\n" +
-            "burgess\n" +
-            "2\n" +
-            "2\n" +
-            "1\n" +
-            "erick\n" +
-            "0";
+        "3\n" +
+        "1\n" +
+        "Bob\n" +
+        "2\n" +
+        "2\n" +
+        "1\n" +
+        "Leopold\n" +
+        "0";
 
     public static final String test5 =
-            "2\n" +
-            "1\n" +
-            "@\n" +
-            "1\n" +
-            "this text never find some match\n" +
-            "2\n" +
-            "0";
+        "1\n" +
+        "@\n" +
+        "1\n" +
+        "Leopold\n" +
+        "0";
 
     public static final String test6 =
-            "0";
+        "0";
 
     public static final String test7 =
-            "1\n" +
-            "this text never find some match\n" +
-            "0";
+        "1\n" +
+        "this text never find some match\n" +
+        "0";
 
     public static final String test8 =
         "1\n" +
         "h\n" +
-        "2\n" +
         "1\n" +
-        "@gmail.com\n" +
+        "gallien@evilcorp.com\n" +
         "0";
 
     public static final String test9 =
@@ -79,7 +73,7 @@ public class SimpleSearchEngineTest extends BaseStageTest<TestClue> {
         "1\n" +
         "h\n" +
         "1\n" +
-        "@GMAIL\n" +
+        "gallien@evilcorp.com\n" +
         "0";
 
     @Override
@@ -106,7 +100,7 @@ public class SimpleSearchEngineTest extends BaseStageTest<TestClue> {
         List<String> outputLines = new LinkedList<String>(Arrays.asList(reply.split(cR)));
         String[] inputLines = clue.input.split(cR);
         String[] reference;
-        String[] idealSearchResult;
+        String[] currentSearchResult;
 
         reference = SearchEngineTests.NAMES.split("\n");
 
@@ -114,7 +108,7 @@ public class SimpleSearchEngineTest extends BaseStageTest<TestClue> {
         List<String> cleanedOutput = new ArrayList<String>();
         for (int i = 0; i < outputLines.size(); i++) {
             if (containsItemFromList(outputLines.get(i), reference)) {
-                cleanedOutput.add(outputLines.get(i));
+                cleanedOutput.add(outputLines.get(i).toLowerCase());
             }
         }
 
@@ -122,9 +116,6 @@ public class SimpleSearchEngineTest extends BaseStageTest<TestClue> {
         int currentOutputLine = 0;
 
         int actionType = -1;
-
-        int searchIteration = 1;
-        int fullOutputIteration = 1;
 
         while (actionType != 0) {
             try {
@@ -138,19 +129,28 @@ public class SimpleSearchEngineTest extends BaseStageTest<TestClue> {
                 case 1:
                     currentInputLine++;
 
-                    String toSearch = inputLines[currentInputLine];
+                    String toSearch = inputLines[currentInputLine].trim().toLowerCase();
 
                     currentInputLine++;
 
-                    idealSearchResult = Arrays.stream(reference)
-                        .filter(line -> line.toLowerCase()
-                            .contains(toSearch.toLowerCase().trim()))
-                        .toArray(String[]::new);
+                    List<String> intendedResult = new ArrayList<>();
 
-                    String[] currentSearchResult = new String[idealSearchResult.length];
-                    for (int i = 0; i < currentSearchResult.length; i++) {
+                    for (String s : reference) {
+                        s = s.toLowerCase();
+                        if (s.contains(" " + toSearch + " ")
+                            || s.startsWith(toSearch + " ")
+                            || s.endsWith(" " + toSearch)) {
+
+                            intendedResult.add(s);
+                        }
+                    }
+
+
+
+                    currentSearchResult = new String[intendedResult.size()];
+                    for (int i = 0; i < intendedResult.size(); i++) {
                         try {
-                            currentSearchResult[i] = cleanedOutput.get(currentOutputLine);
+                            currentSearchResult[i] = cleanedOutput.get(currentOutputLine++);
                         } catch (IndexOutOfBoundsException e) {
                             return new CheckResult(false,
                                 "Seems like you output less than expected. " +
@@ -158,27 +158,33 @@ public class SimpleSearchEngineTest extends BaseStageTest<TestClue> {
                                     "people, or you haven't printed all the necessary " +
                                     "people in the search.");
                         }
-                        currentOutputLine++;
                     }
 
-                    Arrays.sort(currentSearchResult);
-                    Arrays.sort(idealSearchResult);
+                    String[] correctOutput = intendedResult.toArray(new String[0]);
 
-                    if (!Arrays.equals(currentSearchResult, idealSearchResult)) {
+                    Arrays.sort(correctOutput);
+                    Arrays.sort(currentSearchResult);
+
+                    if (!Arrays.equals(correctOutput, currentSearchResult)) {
                         return new CheckResult(false,
                             "Search result is not equal " +
                                 "to the expected search");
                     }
-
-                    searchIteration++;
                     break;
                 case 2:
                     currentInputLine++;
 
-                    String[] currentAll = new String[reference.length];
-                    for (int i = 0; i < currentAll.length; i++) {
+                    List<String> intendedResultAll = new ArrayList<>();
+
+                    for (String s : reference) {
+                        s = s.toLowerCase();
+                        intendedResultAll.add(s);
+                    }
+
+                    String[] userResultAll = new String[intendedResultAll.size()];
+                    for (int i = 0; i < intendedResultAll.size(); i++) {
                         try {
-                            currentAll[i] = cleanedOutput.get(currentOutputLine);
+                            userResultAll[i] = cleanedOutput.get(currentOutputLine++);
                         } catch (IndexOutOfBoundsException e) {
                             return new CheckResult(false,
                                 "Seems like you output less than expected. " +
@@ -186,19 +192,18 @@ public class SimpleSearchEngineTest extends BaseStageTest<TestClue> {
                                     "people, or you haven't printed all the necessary " +
                                     "people in the search.");
                         }
-                        currentOutputLine++;
                     }
 
-                    Arrays.sort(currentAll);
-                    Arrays.sort(reference);
+                    String[] correctOutputAll = intendedResultAll.toArray(new String[0]);
 
-                    if (!Arrays.equals(currentAll, reference)) {
+                    Arrays.sort(correctOutputAll);
+                    Arrays.sort(userResultAll);
+
+                    if (!Arrays.equals(correctOutputAll, userResultAll)) {
                         return new CheckResult(false,
                             "Looks like you're printing " +
                                 "unknown people when you enter option 2.");
                     }
-
-                    fullOutputIteration++;
                     break;
                 case 0:
                     return CheckResult.TRUE;
