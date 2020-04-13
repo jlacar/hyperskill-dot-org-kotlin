@@ -1,13 +1,11 @@
 type: hyperskill
-title: Flashcards
+title: Simple Search Engine
 language: English
-summary: One of the most difficult parts of learning a new language is remembering
-  all the words you need to memorize, which is exactly what flashcards are for. Typically,
-  flashcards show a hint (a task or a picture) on one side and the correct answer
-  on the other. Flashcards can be used to remember all kinds of information, so if
-  you want to create something useful to help you enhance your programming skills,
-  this project may be just right for you.<br/><br/>Learn more at <a href="https://hyperskill.org">https://hyperskill.org/projects/83</a>
+summary: In this project you will create your own search engine, though it probably
+  won’t compete with Google. Yours will be a simple search engine that processes a
+  limited collection of data and searches it for a word or a phrase. It’ll be simple
+  but cool.<br/><br/>Learn more at <a href="https://hyperskill.org">https://hyperskill.org/projects/89</a>
 programming_language: Kotlin
 content:
-- Flashcards
+- Simple Search Engine
 mode: Study
