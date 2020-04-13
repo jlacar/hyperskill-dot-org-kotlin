@@ -2,7 +2,37 @@ package search
 
 fun main() {
     readInput()
-    runQueries()
+    do {
+        printHeader("Menu")
+        println("1. Find a person")
+        println("2. Print all people")
+        println("0. Exit")
+        val choice = readLine()!!.toInt()
+        when (choice) {
+            0 -> println("\nBye!")
+            1 -> runQuery()
+            2 -> listEntries()
+            else -> println("Incorrect option! Try again.")
+        }
+    } while (choice != 0)
+}
+
+fun printHeader(title: String) = println("\n=== $title ===")
+
+fun runQuery() {
+    println("Enter a name or email to search all suitable people.")
+    val value = readLine()!!.trim()
+    val matches = data.filter { it.matchesAny(value) }
+    if (matches.isNotEmpty()) {
+        matches.joinToString("\n")
+    } else {
+        "No matching people found."
+    }.also(::println)
+}
+
+fun listEntries() {
+    printHeader("List of people")
+    println(data.joinToString("\n"))
 }
 
 private val data = mutableListOf<Entry>()
@@ -29,25 +59,14 @@ private fun readInput() {
     }
 }
 
-private fun runQueries() {
-    println("\nEnter the number of search queries:")
-    val count = readLine()!!.trim().toInt()
-    repeat(count) {
-        println("\nEnter data to search people:")
-        val value = readLine()!!.trim()
-        val matches = data.filter { it.matchesAny(value) }
-        if (matches.isNotEmpty()) {
-            matches.joinToString("\n")
-        } else {
-            "No matching people found."
-        }.also(::println)
-    }
-}
+data class Entry(
+        val first: String,
+        val last: String = "",
+        val email: String = "") {
 
-data class Entry (val first: String, val last: String = "", val email: String = "") {
     override fun toString(): String =
-            mutableListOf<String>(first, last, email).joinToString(" ").trim()
+        listOf<String>(first, last, email).joinToString(" ").trim()
 
     fun matchesAny(value: String): Boolean =
-            toString().contains(value, ignoreCase = true)
+        toString().contains(value, ignoreCase = true)
 }
