@@ -24,7 +24,7 @@ private fun inputPeople(): List<String> {
     println("Enter the number of people:")
     val count = readLine()!!.toInt()
     println("Enter all people:")
-    val data = mutableListOßf<String>()
+    val data = mutableListOf<String>()
     repeat(count) { data.add(readLine()!!) }
     return data
 }
