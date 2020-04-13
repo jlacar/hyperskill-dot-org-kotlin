@@ -1,7 +1,9 @@
 package search
 
-fun main() {
-    val people: List<String> = inputPeople()
+import java.io.File
+
+fun main(args: Array<String>) {
+    val people: List<String> = readDataFile(args)
     do {
         """${header("Menu")}
         |1. Find a person
@@ -18,16 +20,11 @@ fun main() {
     } while (choice != 0)
 }
 
-private fun header(title: String) = "\n=== $title ==="
-
-private fun inputPeople(): List<String> {
-    println("Enter the number of people:")
-    val count = readLine()!!.toInt()
-    println("Enter all people:")
-    val data = mutableListOf<String>()
-    repeat(count) { data.add(readLine()!!) }
-    return data
+fun readDataFile(args: Array<String>): List<String> {
+    return File(args[args.indexOf("--data") + 1]).readLines()
 }
+
+private fun header(title: String) = "\n=== $title ==="
 
 private fun query(people: List<String>) {
     println("Enter a name or email to search all suitable people.")
