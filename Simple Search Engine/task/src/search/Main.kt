@@ -21,10 +21,10 @@ fun main() {
 private fun header(title: String) = "\n=== $title ==="
 
 private fun inputPeople(): List<String> {
-    val data = mutableListOf<String>()
     println("Enter the number of people:")
     val count = readLine()!!.toInt()
     println("Enter all people:")
+    val data = mutableListOßf<String>()
     repeat(count) { data.add(readLine()!!) }
     return data
 }
