@@ -20,7 +20,7 @@ fun main() {
     } while (choice != 0)
 }
 
-private fun header(title: String) = println("\n=== $title ===")
+private fun header(title: String): String = "\n=== $title ==="
 
 private fun inputPeople() {
     println("Enter the number of people:")
