@@ -42,15 +42,12 @@ private fun index(people: List<String>): Map<String, List<Int>> {
 
 private fun header(title: String) = "\n=== $title ==="
 
+private fun searchWord() = readLine()!!.trim().toLowerCase()
+private val noMatches = listOf<String>("No matching people found.")
+
 private fun query(people: List<String>, index: Map<String, List<Int>>) {
     println("Enter a name or email to search all suitable people.")
-    val word = readLine()!!.trim().toLowerCase()
-    val matches = index[word]
-    if (matches != null && matches.isNotEmpty()) {
-        matches.map { people[it] }.forEach(::println)
-    } else {
-        println("No matching people found.")
-    }
+    (index[searchWord()]?.map { people[it] } ?: noMatches).forEach(::println)
 }
 
 private fun list(people: List<String>) {
