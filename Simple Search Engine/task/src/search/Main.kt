@@ -32,9 +32,7 @@ private fun index(people: List<String>): Map<String, List<Int>> {
     val invertedIndex = mutableMapOf<String, MutableList<Int>>()
     people.forEachIndexed { index, line ->
         line.split(" ").forEach { word ->
-            word.trim().toLowerCase().also { key ->
-                (invertedIndex[key] ?: mutableListOf<Int>().also { invertedIndex[key] = it }).add(index)
-            }
+            invertedIndex.getOrPut(word.trim().toLowerCase()) { mutableListOf<Int>() }.add(index)
         }
     }
     return invertedIndex
