@@ -1,9 +1,7 @@
 package search
 
-private val data = mutableListOf<String>()
-
 fun main() {
-    inputPeople()
+    val people: List<String> = inputPeople()
     do {
         """${header("Menu")}
         |1. Find a person
@@ -13,8 +11,8 @@ fun main() {
         val choice = readLine()!!.toInt()
         when (choice) {
             0 -> println("\nBye!")
-            1 -> query()
-            2 -> list()
+            1 -> query(people)
+            2 -> list(people)
             else -> println("Incorrect option! Try again.")
         }
     } while (choice != 0)
@@ -22,24 +20,26 @@ fun main() {
 
 private fun header(title: String) = "\n=== $title ==="
 
-private fun inputPeople() {
+private fun inputPeople(): List<String> {
+    val data = mutableListOf<String>()
     println("Enter the number of people:")
     val count = readLine()!!.toInt()
     println("Enter all people:")
     repeat(count) { data.add(readLine()!!) }
+    return data
 }
 
-private fun query() {
+private fun query(people: List<String>) {
     println("Enter a name or email to search all suitable people.")
     val value = readLine()!!.trim()
-    val matches = data.filter { it.contains(value, ignoreCase = true) }
+    val matches = people.filter { it.contains(value, ignoreCase = true) }
     when {
         matches.isNotEmpty() -> matches.forEach(::println)
         else -> println("No matching people found.")
     }
 }
 
-private fun list() {
+private fun list(people: List<String>) {
     println(header("List of people"))
-    data.forEach(::println)
+    people.forEach(::println)
 }
