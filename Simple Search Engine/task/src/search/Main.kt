@@ -33,10 +33,9 @@ private fun query() {
     println("Enter a name or email to search all suitable people.")
     val value = readLine()!!.trim()
     val matches = data.filter { it.contains(value, ignoreCase = true) }
-    if (matches.isNotEmpty()) {
-        matches.forEach(::println)
-    } else {
-        println("No matching people found.")
+    when {
+        matches.isNotEmpty() -> matches.forEach(::println)
+        else -> println("No matching people found.")
     }
 }
 
