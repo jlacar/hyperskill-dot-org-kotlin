@@ -295,6 +295,9 @@ files:
         readLine()!!.also { println(if (it in words) words.indexOf(it) + 1 else "Not found") }
     }
   learner_created: false
+- name: src/search/Stage6Practice.kt
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/89/stages/498/implement
 status: Solved
-record: -1
+record: 11
