@@ -40,15 +40,15 @@ private fun index(people: List<String>): Map<String, List<Int>> {
 }
 
 private fun query(people: List<String>, index: Map<String, List<Int>>) {
-    println("Select a matching strategy: ${Strategy.values().joinToString()}")
-    val strategy = Strategy.valueOf(readLine()!!.toUpperCase())
-    list(strategy.search(getTerms(), people, index))
+    println("Select a matching strategy: ${SearchStrategy.values().joinToString()}")
+    val search = SearchStrategy.valueOf(readLine()!!.toUpperCase())
+    list(search.results(getTerms(), people, index))
 }
 
 private fun header(title: String) = "\n=== $title ==="
 
 private fun getTerms(): List<String> {
-    println("Enter a name or email to search all suitable people.")
+    println("Enter search terms separated by space:")
     return readLine()!!.trim().toLowerCase().split(" ")
 }
 
@@ -61,27 +61,27 @@ private fun list(people: List<String>) {
     }
 }
 
-enum class Strategy {
+enum class SearchStrategy {
     ALL {
-        override fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
+        override fun results(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
             val counts = findAny(words, index).groupingBy { it }.eachCount()
             return counts.mapNotNull { (i, count) -> if (count == words.size) people[i] else null }
         }
     },
 
     ANY {
-        override fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> =
+        override fun results(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> =
             findAny(words, index).distinct().map { people[it] }
     },
 
     NONE {
-        override fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
-            val anyMatches = ANY.search(words, people, index)
+        override fun results(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
+            val anyMatches = ANY.results(words, people, index)
             return people.filter { !anyMatches.contains(it) }
         }
     };
 
     protected fun findAny(words: List<String>, index: Map<String, List<Int>>) = words.mapNotNull { index[it] }.flatten()
 
-    abstract fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String>
+    abstract fun results(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String>
 }
