@@ -26,12 +26,6 @@ fun main(args: Array<String>) {
 }
 
 private fun readDataFile(args: Array<String>): List<String> {
-//    return """|Dwight Joseph djo@gmail.com
-//              |Rene Webb webb@gmail.com
-//              |Katie Jacobs
-//              |Erick Harrington harrington@gmail.com
-//              |Myrtle Medina
-//              |Erick Burgess""".trimMargin().split("\n").toList()
     return File(args[args.indexOf("--data") + 1]).readLines()
 }
 
@@ -72,7 +66,6 @@ enum class Strategy {
         override fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
             val counts = findAny(words, index).groupingBy { it }.eachCount()
             return counts.mapNotNull { (i, count) -> if (count == words.size) people[i] else null }
-//            return counts.filter { (_, count) -> count == words.size }.map { (i, _) -> people[i] }
         }
     },
 
