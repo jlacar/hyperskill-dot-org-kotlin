@@ -2,7 +2,24 @@ package search
 
 fun main() {
     // call one of the *Problem() functions below
-    ranchStringProblem()
+//    ranchStringProblem()
+    ranchAssociateToProblem()
+}
+
+data class Product(val name: String, var qty: Int = 0)
+
+fun ranchAssociateToProblem() {
+    val allProducts: Map<String, Array<Product>> = mapOf(
+            "shoes" to arrayOf(Product("Nike", 1), Product("Adidas")),
+            "pants" to arrayOf(Product("Levis", 10), Product("Wrangler"), Product("Dockers", 5))
+    )
+
+    val availableProducts = allProducts.mapValues { (_, products) ->
+        products.filter { it.qty != 0 }
+    }
+
+    allProducts.mapValues { (_, products) -> products.filter {true} }.forEach(::println)
+    availableProducts.forEach(::println)
 }
 
 fun ranchStringProblem() {

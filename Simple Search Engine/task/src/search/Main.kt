@@ -24,12 +24,12 @@ fun main(args: Array<String>) {
 }
 
 private fun readDataFile(args: Array<String>): List<String> {
-    return """Dwight Joseph djo@gmail.com
-              Rene Webb webb@gmail.com
-              Katie Jacobs
-              Erick Harrington harrington@gmail.com
-              Myrtle Medina
-              Erick Burgess""".trimIndent().split("\n").toList()
+    return """|Dwight Joseph djo@gmail.com
+              |Rene Webb webb@gmail.com
+              |Katie Jacobs
+              |Erick Harrington harrington@gmail.com
+              |Myrtle Medina
+              |Erick Burgess""".trimMargin().split("\n").toList()
     //return File(args[args.indexOf("--data") + 1]).readLines()
 }
 
@@ -43,51 +43,50 @@ private fun index(people: List<String>): Map<String, List<Int>> {
     return invertedIndex
 }
 
-private fun header(title: String) = "\n=== $title ==="
-
-private fun searchTerms() = readLine()!!.trim().toLowerCase()
-
 private fun query(people: List<String>, index: Map<String, List<Int>>) {
     println("Select a matching strategy: ${Strategy.values().joinToString()}")
-    val strategy = Strategy.valueOf(readLine()!!)
+    val strategy = Strategy.valueOf(readLine()!!.toUpperCase())
+    list(strategy.search(getTerms(), people, index))
+}
+
+private fun header(title: String) = "\n=== $title ==="
+
+private fun getTerms(): List<String> {
     println("Enter a name or email to search all suitable people.")
-    strategy.search(searchTerms(), people, index).forEach(::println)
+    return readLine()!!.trim().toLowerCase().split(" ")
 }
 
 private fun list(people: List<String>) {
-    println(header("List of people"))
-    people.forEach(::println)
+    if (people.isNotEmpty()) {
+        println(header("List of people"))
+        people.forEach(::println)
+    } else {
+        println("No matching people found.")
+    }
 }
 
 enum class Strategy {
-
     ALL {
-        override fun search(words: String, people: List<String>, index: Map<String, List<Int>>): List<String> {
-            words.split(" ").forEach { word ->
-
-
-            }
-            return NO_MATCHES
+        override fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
+            val counts = findAny(words, index).groupingBy { it }.eachCount()
+            return counts.mapNotNull { (i, count) -> if (count == words.size) people[i] else null }
+//            return counts.filter { (_, count) -> count == words.size }.map { (i, _) -> people[i] }
         }
     },
 
     ANY {
-        override fun search(words: String, people: List<String>, index: Map<String, List<Int>>): List<String> {
-            val workingSet = mutableListOf<String>()
-            workingSet.addAll(people)
-            return workingSet
-        }
+        override fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> =
+            findAny(words, index).distinct().map { people[it] }
     },
 
     NONE {
-        override fun search(words: String, people: List<String>, index: Map<String, List<Int>>): List<String> {
-            val workingSet = mutableListOf<String>()
-            workingSet.addAll(people)
-            return workingSet
+        override fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
+            val anyMatches = ANY.search(words, people, index)
+            return people.filter { !anyMatches.contains(it) }
         }
     };
 
-    protected val NO_MATCHES = listOf<String>("No matching people found.")
+    protected fun findAny(words: List<String>, index: Map<String, List<Int>>) = words.mapNotNull { index[it] }.flatten()
 
-    abstract fun search(words: String, people: List<String>, index: Map<String, List<Int>>): List<String>
+    abstract fun search(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String>
 }
