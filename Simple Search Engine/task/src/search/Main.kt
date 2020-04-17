@@ -1,5 +1,7 @@
 package search
 
+import java.io.File
+
 /**
  * Stage #6: Search Strategies
  */
@@ -24,13 +26,13 @@ fun main(args: Array<String>) {
 }
 
 private fun readDataFile(args: Array<String>): List<String> {
-    return """|Dwight Joseph djo@gmail.com
-              |Rene Webb webb@gmail.com
-              |Katie Jacobs
-              |Erick Harrington harrington@gmail.com
-              |Myrtle Medina
-              |Erick Burgess""".trimMargin().split("\n").toList()
-    //return File(args[args.indexOf("--data") + 1]).readLines()
+//    return """|Dwight Joseph djo@gmail.com
+//              |Rene Webb webb@gmail.com
+//              |Katie Jacobs
+//              |Erick Harrington harrington@gmail.com
+//              |Myrtle Medina
+//              |Erick Burgess""".trimMargin().split("\n").toList()
+    return File(args[args.indexOf("--data") + 1]).readLines()
 }
 
 private fun index(people: List<String>): Map<String, List<Int>> {
