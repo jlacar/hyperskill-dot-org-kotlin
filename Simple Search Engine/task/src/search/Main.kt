@@ -64,24 +64,26 @@ private fun list(people: List<String>) {
 enum class SearchStrategy {
     ALL {
         override fun results(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
-            val counts = findAny(words, index).groupingBy { it }.eachCount()
-            return counts.mapNotNull { (i, count) -> if (count == words.size) people[i] else null }
+            val allWords = words.size
+            val matchCounts = allIndicesOf(words, index).groupingBy { it }.eachCount()
+            return matchCounts.filter { (_, matched) -> matched == allWords }.map { people[it.key] }
         }
     },
 
     ANY {
         override fun results(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> =
-            findAny(words, index).distinct().map { people[it] }
+            allIndicesOf(words, index).distinct().map { people[it] }
     },
 
     NONE {
         override fun results(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String> {
             val anyMatches = ANY.results(words, people, index)
-            return people.filter { !anyMatches.contains(it) }
+            return people.filterNot { anyMatches.contains(it) }
         }
     };
 
-    protected fun findAny(words: List<String>, index: Map<String, List<Int>>) = words.mapNotNull { index[it] }.flatten()
+    protected fun allIndicesOf(words: List<String>, index: Map<String, List<Int>>): List<Int> =
+            words.mapNotNull { index[it] }.flatten()
 
     abstract fun results(words: List<String>, people: List<String>, index: Map<String, List<Int>>): List<String>
 }
