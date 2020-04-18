@@ -13,6 +13,7 @@ fun main(args: Array<String>) {
         |${header("Menu")}
         |1. Find a person
         |2. Print all people
+        |3. Print index
         |0. Exit""".trimMargin().also(::println)
 
         val choice = readLine()!!.toInt()
@@ -20,24 +21,66 @@ fun main(args: Array<String>) {
             0 -> println("\nBye!")
             1 -> query(people, index)
             2 -> list(people, "indexed")
+            3 -> index.forEach(::println)
             else -> println("Incorrect option! Try again.")
         }
     } while (choice != 0)
 }
 
 private fun readDataFile(args: Array<String>): List<String> {
+//    return """|Dwight Joseph djo@gmail.com
+//            |Rene Webb webb@gmail.com
+//            |Katie Jacobs
+//            |Erick Harrington harrington@gmail.com
+//            |Myrtle Medina
+//            |Erick Burgess""".trimMargin()
+//            .split("\n").toList()
+
+//return """|Dwight Joseph djo@gmail.com
+//          |Bong Marcaida brods@apophils.org
+//          |Rene Webb webb@gmail.com
+//          |Rene Kintanar brods@apophils.org
+//          |Jesse Kintanar brods@apophils.org
+//          |Katie Jacobs
+//          |Dave Chilcott dchilcott@aci.com
+//          |Bong Cinco brods@apophils.org
+//          |Erick Harrington harrington@gmail.com
+//          |Dave Haws david.haws@accenture.com
+//          |Bong Bayon brods@apophils.org
+//          |Dave Stought dstought@cisco.com
+//          |Myrtle Medina
+//          |Bong Raterta brods@apophils.org
+//          |Erick Burgess""".trimMargin().split("\n").toList()
+
     return File(args[args.indexOf("--data") + 1]).readLines()
 }
 
-private fun index(people: List<String>): Map<String, List<Int>> {
-    val invertedIndex = mutableMapOf<String, MutableList<Int>>()
-    people.forEachIndexed { index, line ->
-        line.split(" ").forEach { word ->
-            invertedIndex.getOrPut(word.trim().toLowerCase()) { mutableListOf<Int>() }.add(index)
-        }
-    }
-    return invertedIndex
-}
+// Based on https://stackoverflow.com/questions/53433108/kotlin-from-a-list-of-maps-to-a-map-grouped-by-key
+private fun index(people: List<String>): Map<String, List<Int>> =
+    people.mapIndexed { index, entry ->
+        entry.toLowerCase().split(" ")
+        .associateWithTo(mutableMapOf<String, Int>()) { index }
+    }.asSequence().flatMap { it.asSequence() }.groupBy({ it.key }, { it.value })
+
+// Alternatives:
+//
+// =====
+// Mike Simmons' solution (https://coderanch.com/t/729374/languages/idiomatic-Kotlin-creating-inverted-index)
+//    people.withIndex().flatMap { (index, person) ->
+//        person.trim().toLowerCase().split(" ").map { word ->
+//            IndexedValue(index, word)
+//        }
+//    }.groupBy({ it.value }, { it.index })
+
+// =====
+// My original solution
+//    val invertedIndex = mutableMapOf<String, MutableList<Int>>()
+//    people.forEachIndexed { index, line ->
+//        line.split(" ").forEach { word ->
+//            invertedIndex.getOrPut(word.trim().toLowerCase()) { mutableListOf<Int>() }.add(index)
+//        }
+//    }
+//    return invertedIndex
 
 private fun query(people: List<String>, index: Map<String, List<Int>>) {
     println("Select a matching strategy: ${SearchStrategy.values().joinToString()}")

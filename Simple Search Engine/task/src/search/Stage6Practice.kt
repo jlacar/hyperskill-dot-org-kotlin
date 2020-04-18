@@ -1,9 +1,24 @@
 package search
 
+private fun index(people: List<String>): Map<String, List<Int>> =
+        people.mapIndexed { index, entry ->
+            entry.toLowerCase().split(" ").filterNot { it.isNullOrBlank() }
+            .associateWithTo(mutableMapOf<String, Int>()) { index }
+        }.asSequence().flatMap { it.asSequence() }
+        .groupBy({ it.key }, { it.value })
+
+// This works, too:
+//    people.withIndex().flatMap { (index, person) ->
+//        person.trim().toLowerCase().split(" ").map {
+//            word -> IndexedValue(index, word)
+//        }
+//    }.groupBy({ it.value }, { it.index })
+
 fun main() {
     // call one of the *Problem() functions below
 //    ranchStringProblem()
-    ranchAssociateToProblem()
+//    ranchAssociateToProblem()
+    index(readDataFile()).forEach(::println)
 }
 
 data class Product(val name: String, var qty: Int = 0)
@@ -20,6 +35,32 @@ fun ranchAssociateToProblem() {
 
     allProducts.mapValues { (_, products) -> products.filter {true} }.forEach(::println)
     availableProducts.forEach(::println)
+}
+
+private fun readDataFile(): List<String> {
+    return """|Dwight Joseph djo@gmail.com
+          |Bong Marcaida brods@apophils.org
+          |Rene Webb webb@gmail.com
+          |Rene Kintanar brods@apophils.org
+          |Jesse Kintanar brods@apophils.org
+          |Katie Jacobs
+          |Dave Chilcott dchilcott@aci.com
+          |Bong Cinco brods@apophils.org
+          |Erick Harrington harrington@gmail.com
+          |Dave Haws david.haws@accenture.com
+          |Bong Bayon brods@apophils.org
+          |Dave Stought dstought@cisco.com
+          |Myrtle Medina
+          |Bong Raterta brods@apophils.org
+          |Erick Burgess""".trimMargin().split("\n").toList()
+
+//    return """|Dwight Joseph djo@gmail.com
+//            |Rene Webb webb@gmail.com
+//            |Katie Jacobs
+//            |Erick Harrington harrington@gmail.com
+//            |Myrtle Medina
+//            |Erick Burgess""".trimMargin()
+//            .split("\n").toList()
 }
 
 fun ranchStringProblem() {
