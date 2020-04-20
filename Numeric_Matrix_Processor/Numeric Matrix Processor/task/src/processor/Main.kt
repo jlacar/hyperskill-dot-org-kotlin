@@ -91,22 +91,22 @@ private fun chooseAction(): Int {
 }
 
 private fun sum() {
-    val (a, b) = Pair(matrix(), matrix())
-    println(a + b)
+    val (a, b) = Pair(readMatrix(), readMatrix())
+    println((a + b) ?: "ERROR")
 }
 
 private fun scalarProduct() {
-    val a = matrix()
+    val a = readMatrix()
     val scalar = readDouble(1).first()
     println(scalar * a) // works too because of Double.times() extension above
 }
 
 private fun matrixProduct() {
-    val (a, b) = Pair(matrix(), matrix())
-    println(a * b)
+    val (a, b) = Pair(readMatrix(), readMatrix())
+    println((a * b) ?: "ERROR")
 }
 
-private fun matrix(): Matrix {
+private fun readMatrix(): Matrix {
     val (rows, cols) = readSize(2)
     val matrix = Matrix(rows, cols)
     repeat(rows) { matrix[it] = readDouble(cols) }
