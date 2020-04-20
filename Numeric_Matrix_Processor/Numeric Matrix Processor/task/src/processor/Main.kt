@@ -1,34 +1,37 @@
 package processor
 
-fun main() {
-    val (rowsA, colsA) = readMatrixSize()
-    val matrixA = readMatrixElements(rowsA, colsA)
+class IntMatrix (val rows: Int, val cols: Int) {
+    val size = Pair(rows, cols)
+    private val elements = Array<IntArray>(rows) { IntArray(cols) { 0 } }
 
-    val (rowsB, colsB) = readMatrixSize()
-    if (rowsA != rowsB || colsA != colsB) {
-        println("ERROR")
-    } else {
-        sumOf(matrixA, readMatrixElements(rowsB, colsB)).also {
-            it.forEach { row -> println(row.joinToString(" ")) }
-        }
+    override fun toString(): String = elements.map {
+        it.joinToString(" ", postfix = "\n") }.joinToString(" ")
+
+    operator fun plus(other: IntMatrix): IntMatrix? {
+        if (this.size != other.size) return null
+        val matrixSum = IntMatrix(rows, cols)
+        elements.mapIndexed { i, row -> matrixSum[i] = sum(row, other[i]) }
+        return matrixSum
     }
+
+    private fun sum(a: IntArray, b: IntArray): IntArray =
+        a.mapIndexed { i, n -> n + b[i] }.toIntArray()
+
+    operator fun set(i: Int, elements: IntArray) { this.elements[i] = elements }
+    operator fun get(i: Int): IntArray = elements[i]
 }
 
-private fun readMatrixSize(): IntArray = readInts(2)
+fun main() {
+    val (a, b) = Pair(intMatrix(), intMatrix())
+    println((a + b) ?: "ERROR")
+}
 
-private fun readMatrixElements(rows: Int, cols: Int): Array<IntArray> {
-    val matrix = Array<IntArray>(rows) { IntArray(cols) { 0 } }
+private fun intMatrix(): IntMatrix {
+    val (rows, cols) = readInts(2)
+    val matrix = IntMatrix(rows, cols)
     repeat(rows) { matrix[it] = readInts(cols) }
     return matrix
 }
 
 private fun readInts(count: Int) = readLine()!!.trim().split(" ")
         .map { it.toInt() }.take(count).toIntArray()
-
-private fun sumOf(matrixA: Array<IntArray>, matrixB: Array<IntArray>): Array<IntArray> {
-    val result = matrixA.mapIndexed { index, row -> rowMatrixSum(row, matrixB[index]) }
-    return result.toTypedArray()
-}
-
-private fun rowMatrixSum(a: IntArray, b: IntArray): IntArray =
-    a.mapIndexed { i, n -> n + b[i] }.toIntArray()
