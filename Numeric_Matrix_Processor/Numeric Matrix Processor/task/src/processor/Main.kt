@@ -21,11 +21,11 @@ class Matrix(val rows: Int, val cols: Int) {
         return scalarProduct
     }
 
-    private fun transpose(): Matrix {
+    fun transpose(): Matrix {
         val transposed = Matrix(cols, rows)
         repeat(rows) { row ->
-            this[row].forEach { n ->
-                transposed[row] = transposed[row] + n
+            elements[row].forEachIndexed { col, n ->
+                transposed[col][row] = n
             }
         }
         return transposed
@@ -53,14 +53,12 @@ class Matrix(val rows: Int, val cols: Int) {
             a.foldIndexed(0.0) { i, sum, value -> sum + value * b[i] }
 
     operator fun times(other: Matrix): Matrix? {
-        val (_, cols) = other.size
-        if (this.rows != cols) return null
-
-        val product = Matrix(this.rows, cols)
+        if (this.cols != other.rows) return null
+        val product = Matrix(this.rows, other.cols)
         val otherColumns = other.transpose()
-        elements.forEachIndexed { row, rowMatrix ->
-            repeat(rowMatrix.size) { col ->
-                product[row][col] = product(rowMatrix, otherColumns[col])
+        for (row in 0 until this.rows) {
+            for (col in 0 until other.cols) {
+                product[row][col] = product(elements[row], otherColumns[col])
             }
         }
         return product
