@@ -9,8 +9,7 @@ class Matrix(val rows: Int, val cols: Int) {
 
     override fun toString(): String = values.joinToString("\n") { it.joinToString(" ") }
 
-    fun transpose(transposeStrategy: MatrixTransposeType = MAIN_DIAGONAL) =
-        transposeStrategy.transpose(this)
+    fun transpose(strategy: MatrixTransposeType = MAIN_DIAGONAL) = strategy.transpose(this)
 
     operator fun set(row: Int, values: DoubleArray) {
         this.values[row] = values
@@ -62,7 +61,7 @@ class Matrix(val rows: Int, val cols: Int) {
 // Make scalar multiplication commutative: scalar * Matrix == Matrix * scalar
 operator fun Double.times(matrix: Matrix) = matrix.times(this)
 
-typealias TransposeMapping = (Matrix, Int, Int) -> Double
+typealias TransposeMapper = (Matrix, Int, Int) -> Double
 
 enum class MatrixTransposeType {
     MAIN_DIAGONAL {
@@ -82,12 +81,12 @@ enum class MatrixTransposeType {
                 map(matrix) { m, row, col -> m[m.rows - row - 1][col] }
     };
 
-    protected fun map(matrix: Matrix, mapping: TransposeMapping): Matrix {
+    protected fun map(matrix: Matrix, mapper: TransposeMapper): Matrix {
         val (rows, cols) = matrix.size
         val transposed = Matrix(cols, rows)
         (0 until rows).forEach { col ->
             (0 until cols).forEach { row ->
-                transposed[row][col] = mapping(matrix, row, col)
+                transposed[row][col] = mapper(matrix, row, col)
             }
         }
         return transposed
@@ -151,7 +150,7 @@ private fun typeChosen(): MatrixTransposeType {
     return values().first { it.ordinal == ord }
 }
 
-fun doTransposeFor(transposeStrategy: MatrixTransposeType) {
+private fun doTransposeFor(transposeStrategy: MatrixTransposeType) {
     val matrix = readMatrix()
     println("The result is:\n${matrix.transpose(transposeStrategy)}")
 }
