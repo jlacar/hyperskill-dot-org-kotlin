@@ -107,14 +107,14 @@ private fun matrixProduct() {
 }
 
 private fun readMatrix(): Matrix {
-    val (rows, cols) = readSize(2)
+    val (rows, cols) = readSize()
     val matrix = Matrix(rows, cols)
     repeat(rows) { matrix[it] = readDouble(cols) }
     return matrix
 }
 
-private fun readSize(count: Int): IntArray = readLine()!!.trim().split(" ")
-        .map { it.toInt() }.take(count).toIntArray()
+private fun readSize(): IntArray = readLine()!!.trim().split(" ")
+        .map { it.toInt() }.take(2).toIntArray()
 
 private fun readDouble(count: Int): DoubleArray = readLine()!!.trim().split(" ")
         .map { it.toDouble() }.take(count).toDoubleArray()
