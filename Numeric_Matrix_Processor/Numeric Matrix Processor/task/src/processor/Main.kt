@@ -1,20 +1,16 @@
 package processor
 
-import processor.TransposeType.*
+import processor.MatrixTransposeType.*
 
 class Matrix(val rows: Int, val cols: Int) {
     val size = Pair(rows, cols)
 
     private val values = Array(rows) { DoubleArray(cols) { 0.0 } }
 
-    override fun toString(): String = values.joinToString("\n") {
-        it.joinToString(" ")
-    }
+    override fun toString(): String = values.joinToString("\n") { it.joinToString(" ") }
 
-    fun transpose(type: TransposeType = MAIN_DIAGONAL) = type.transpose(this)
-
-    fun isSquare() = rows == cols
-    fun isNotSquare() = !isSquare()
+    fun transpose(transposeStrategy: MatrixTransposeType = MAIN_DIAGONAL) =
+        transposeStrategy.transpose(this)
 
     operator fun set(row: Int, values: DoubleArray) {
         this.values[row] = values
@@ -63,27 +59,27 @@ class Matrix(val rows: Int, val cols: Int) {
             a.foldIndexed(0.0) { i, sum, value -> sum + value * b[i] }
 }
 
-// Make it commutative: scalar * Matrix == Matrix * scalar
-operator fun Double.times(matrix: Matrix): Matrix = matrix.times(this)
+// Make scalar multiplication commutative: scalar * Matrix == Matrix * scalar
+operator fun Double.times(matrix: Matrix) = matrix.times(this)
 
 typealias TransposeMapping = (Matrix, Int, Int) -> Double
 
-enum class TransposeType {
+enum class MatrixTransposeType {
     MAIN_DIAGONAL {
-        override fun transpose(matrix: Matrix): Matrix =
-                map(matrix, { m, row, col -> m[col][row] })
+        override fun transpose(matrix: Matrix) =
+                map(matrix) { m, row, col -> m[col][row] }
     },
     SIDE_DIAGONAL {
-        override fun transpose(matrix: Matrix): Matrix =
-                map(matrix, { m, row, col -> m[m.cols - col - 1][m.rows - row - 1] })
+        override fun transpose(matrix: Matrix) =
+                map(matrix) { m, row, col -> m[m.cols - col - 1][m.rows - row - 1] }
     },
     VERTICAL_LINE {
-        override fun transpose(matrix: Matrix): Matrix =
-                map(matrix, { m, row, col -> m[row][m.cols - col - 1] })
+        override fun transpose(matrix: Matrix) =
+                map(matrix) { m, row, col -> m[row][m.cols - col - 1] }
     },
     HORIZONTAL_LINE {
-        override fun transpose(matrix: Matrix): Matrix =
-                map(matrix, { m, row, col -> m[m.rows - row - 1][col] })
+        override fun transpose(matrix: Matrix) =
+                map(matrix) { m, row, col -> m[m.rows - row - 1][col] }
     };
 
     protected fun map(matrix: Matrix, mapping: TransposeMapping): Matrix {
@@ -150,14 +146,14 @@ private fun transposeMenu() {
     doTransposeFor(typeChosen())
 }
 
-private fun typeChosen(): TransposeType {
+private fun typeChosen(): MatrixTransposeType {
     val ord = readInt(1).first() - 1
     return values().first { it.ordinal == ord }
 }
 
-fun doTransposeFor(type: TransposeType) {
+fun doTransposeFor(transposeStrategy: MatrixTransposeType) {
     val matrix = readMatrix()
-    println("The result is:\n${matrix.transpose(type)}")
+    println("The result is:\n${matrix.transpose(transposeStrategy)}")
 }
 
 private fun readMatrix(): Matrix {
