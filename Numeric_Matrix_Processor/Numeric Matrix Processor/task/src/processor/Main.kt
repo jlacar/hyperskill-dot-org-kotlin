@@ -65,20 +65,16 @@ typealias TransposeMapper = (Matrix, Int, Int) -> Double
 
 enum class MatrixTransposeType {
     MAIN_DIAGONAL {
-        override fun transpose(matrix: Matrix) =
-                map(matrix) { m, row, col -> m[col][row] }
+        override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[col][row] }
     },
     SIDE_DIAGONAL {
-        override fun transpose(matrix: Matrix) =
-                map(matrix) { m, row, col -> m[m.cols - col - 1][m.rows - row - 1] }
+        override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[m.cols - col - 1][m.rows - row - 1] }
     },
     VERTICAL_LINE {
-        override fun transpose(matrix: Matrix) =
-                map(matrix) { m, row, col -> m[row][m.cols - col - 1] }
+        override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[row][m.cols - col - 1] }
     },
     HORIZONTAL_LINE {
-        override fun transpose(matrix: Matrix) =
-                map(matrix) { m, row, col -> m[m.rows - row - 1][col] }
+        override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[m.rows - row - 1][col] }
     };
 
     protected fun map(matrix: Matrix, mapper: TransposeMapper): Matrix {
@@ -118,10 +114,7 @@ private fun chooseAction(): Int {
     return readInt(1).first()
 }
 
-private fun sum() {
-    val (a, b) = Pair(readMatrix(), readMatrix())
-    println((a + b) ?: "ERROR")
-}
+private fun sum() = println((readMatrix() + readMatrix()) ?: "ERROR")
 
 private fun scalarProduct() {
     val a = readMatrix()
@@ -129,10 +122,7 @@ private fun scalarProduct() {
     println(scalar * a) // works too because of Double.times() extension above
 }
 
-private fun matrixProduct() {
-    val (a, b) = Pair(readMatrix(), readMatrix())
-    println((a * b) ?: "ERROR")
-}
+private fun matrixProduct() = println((readMatrix() * readMatrix()) ?: "ERROR")
 
 private fun transposeMenu() {
     print(
@@ -150,10 +140,8 @@ private fun typeChosen(): MatrixTransposeType {
     return values().first { it.ordinal == ord }
 }
 
-private fun doTransposeFor(transposeStrategy: MatrixTransposeType) {
-    val matrix = readMatrix()
-    println("The result is:\n${matrix.transpose(transposeStrategy)}")
-}
+private fun doTransposeFor(transposeStrategy: MatrixTransposeType) =
+    println("The result is:\n${readMatrix().transpose(transposeStrategy)}")
 
 private fun readMatrix(): Matrix {
     print("Enter matrix size: ")
