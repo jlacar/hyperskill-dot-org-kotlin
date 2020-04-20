@@ -14,16 +14,27 @@ class IntMatrix (val rows: Int, val cols: Int) {
         return matrixSum
     }
 
+    operator fun times(scalar: Int): IntMatrix {
+        val lineArray = IntArray(cols) { scalar }
+        val scalarProduct = IntMatrix(rows, cols)
+        elements.mapIndexed { i, row -> scalarProduct[i] = product(row, lineArray) }
+        return scalarProduct
+    }
+
     operator fun set(i: Int, elements: IntArray) { this.elements[i] = elements }
     operator fun get(i: Int): IntArray = elements[i]
 
     private fun sum(a: IntArray, b: IntArray): IntArray =
         a.mapIndexed { i, n -> n + b[i] }.toIntArray()
+
+    private fun product(a: IntArray, b: IntArray): IntArray =
+        a.mapIndexed { i, n -> n * b[i] }.toIntArray()
 }
 
 fun main() {
-    val (a, b) = Pair(intMatrix(), intMatrix())
-    println((a + b) ?: "ERROR")
+    val a = intMatrix()
+    val scalar = readInts(1).first()
+    println(a * scalar)
 }
 
 private fun intMatrix(): IntMatrix {
