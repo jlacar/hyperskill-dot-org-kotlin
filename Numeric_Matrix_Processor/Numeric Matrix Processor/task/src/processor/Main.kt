@@ -105,7 +105,7 @@ fun main() {
 
 private fun chooseAction(): Int {
     println(
-    """|1. Add matrices
+            """|1. Add matrices
        |2. Multiply matrix to a constant
        |3. Multiply matrices
        |4. Transpose matrix
@@ -126,7 +126,7 @@ private fun matrixProduct() = println((readMatrix() * readMatrix()) ?: "ERROR")
 
 private fun transposeMenu() {
     print(
-    """|1. Main diagonal
+            """|1. Main diagonal
        |2. Side diagonal
        |3. Vertical line
        |4. Horizontal line
@@ -141,7 +141,7 @@ private fun typeChosen(): MatrixTransposeType {
 }
 
 private fun doTransposeFor(transposeStrategy: MatrixTransposeType) =
-    println("The result is:\n${readMatrix().transpose(transposeStrategy)}")
+        println("The result is:\n${readMatrix().transpose(transposeStrategy)}")
 
 private fun readMatrix(): Matrix {
     print("Enter matrix size: ")
