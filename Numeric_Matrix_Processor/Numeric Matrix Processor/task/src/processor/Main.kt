@@ -16,7 +16,7 @@ class Matrix(val rows: Int, val cols: Int) {
 
     fun determinant(): Double? {
         if (isNotSquare()) return null
-
+        return 0.0
     }
 
     operator fun set(row: Int, values: DoubleArray) {
@@ -85,15 +85,17 @@ enum class MatrixTransposeType {
         override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[m.rows - row - 1][col] }
     };
 
-    protected fun map(matrix: Matrix, mapper: TransposeMapper): Matrix {
-        val (rows, cols) = matrix.size
-        val transposed = Matrix(cols, rows)
-        (0 until rows).forEach { col ->
-            (0 until cols).forEach { row ->
-                transposed[row][col] = mapper(matrix, row, col)
+    private companion object {
+        fun map(matrix: Matrix, transpose: TransposeMapper): Matrix {
+            val (cols, rows) = matrix.size
+            val transposed = Matrix(rows, cols)
+            (0 until rows).forEach { row ->
+                (0 until cols).forEach { col ->
+                    transposed[row][col] = transpose(matrix, row, col)
+                }
             }
+            return transposed
         }
-        return transposed
     }
 
     abstract fun transpose(matrix: Matrix): Matrix
@@ -144,7 +146,8 @@ private fun determinant() {
 }
 
 private fun printResultOrError(result: Any?) {
-    println("""The result is:\n${result ?: "ERROR"}""")
+    println("""The result is:
+        |${result ?: "ERROR"}""".trimMargin())
 }
 
 private fun transposeMenu() {
