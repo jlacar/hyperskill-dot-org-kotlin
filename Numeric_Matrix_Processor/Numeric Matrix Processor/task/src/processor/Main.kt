@@ -9,7 +9,15 @@ class Matrix(val rows: Int, val cols: Int) {
 
     override fun toString(): String = values.joinToString("\n") { it.joinToString(" ") }
 
+    fun isSquare() = rows == cols
+    fun isNotSquare() = !isSquare()
+
     fun transpose(strategy: MatrixTransposeType = MAIN_DIAGONAL) = strategy.transpose(this)
+
+    fun determinant(): Double? {
+        if (isNotSquare()) return null
+
+    }
 
     operator fun set(row: Int, values: DoubleArray) {
         this.values[row] = values
@@ -99,39 +107,54 @@ fun main() {
             2 -> scalarProduct()
             3 -> matrixProduct()
             4 -> transposeMenu()
+            5 -> determinant()
         }
     } while (action != 0)
 }
 
 private fun chooseAction(): Int {
     println(
-            """|1. Add matrices
+    """|1. Add matrices
        |2. Multiply matrix to a constant
        |3. Multiply matrices
        |4. Transpose matrix
+       |5. Calculate a determinant
        |0. Exit
        |Your choice: """.trimMargin())
+
     return readInt(1).first()
 }
 
-private fun sum() = println((readMatrix() + readMatrix()) ?: "ERROR")
+private fun sum() {
+    printResultOrError(readMatrix() + readMatrix())
+}
 
 private fun scalarProduct() {
     val a = readMatrix()
     val scalar = readDouble(1).first()
-    println(scalar * a) // works too because of Double.times() extension above
+    printResultOrError(scalar * a) // works too because of Double.times() extension above
 }
 
-private fun matrixProduct() = println((readMatrix() * readMatrix()) ?: "ERROR")
+private fun matrixProduct() {
+    printResultOrError(readMatrix() * readMatrix())
+}
+
+private fun determinant() {
+    printResultOrError(readMatrix().determinant())
+}
+
+private fun printResultOrError(result: Any?) {
+    println("""The result is:\n${result ?: "ERROR"}""")
+}
 
 private fun transposeMenu() {
     print(
-            """|1. Main diagonal
+    """|1. Main diagonal
        |2. Side diagonal
        |3. Vertical line
        |4. Horizontal line
-       |Your choice: """.trimMargin()
-    )
+       |Your choice: """.trimMargin())
+
     doTransposeFor(typeChosen())
 }
 
@@ -140,8 +163,9 @@ private fun typeChosen(): MatrixTransposeType {
     return values().first { it.ordinal == ord }
 }
 
-private fun doTransposeFor(transposeStrategy: MatrixTransposeType) =
-        println("The result is:\n${readMatrix().transpose(transposeStrategy)}")
+private fun doTransposeFor(transposeStrategy: MatrixTransposeType) {
+    printResultOrError(readMatrix().transpose(transposeStrategy))
+}
 
 private fun readMatrix(): Matrix {
     print("Enter matrix size: ")
