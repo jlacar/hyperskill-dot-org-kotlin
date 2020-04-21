@@ -12,7 +12,17 @@ class Matrix(val rows: Int, val cols: Int) {
     fun isSquare() = rows == cols
     fun isNotSquare() = !isSquare()
 
-    fun transpose(strategy: MatrixTransposeType = MAIN_DIAGONAL) = strategy.transpose(this)
+    fun transpose(strategy: MatrixTransposeType = MAIN_DIAGONAL): Matrix {
+        val (cols, rows) = this.size
+        val transposed = Matrix(rows, cols)
+        val mapper = strategy.mapper()
+        (0 until rows).forEach { row ->
+            (0 until cols).forEach { col ->
+                transposed[row][col] = mapper(this, row, col)
+            }
+        }
+        return transposed
+    }
 
     fun determinant(): Double? {
         if (isNotSquare()) return null
@@ -73,32 +83,18 @@ typealias TransposeMapper = (Matrix, Int, Int) -> Double
 
 enum class MatrixTransposeType {
     MAIN_DIAGONAL {
-        override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[col][row] }
+        override fun mapper(): TransposeMapper = { a, row, col -> a[col][row] }
     },
     SIDE_DIAGONAL {
-        override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[m.cols - col - 1][m.rows - row - 1] }
+        override fun mapper(): TransposeMapper = { a, row, col -> a[a.cols - col - 1][a.rows - row - 1] }
     },
     VERTICAL_LINE {
-        override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[row][m.cols - col - 1] }
+        override fun mapper(): TransposeMapper = { a, row, col -> a[row][a.cols - col - 1] }
     },
     HORIZONTAL_LINE {
-        override fun transpose(matrix: Matrix) = map(matrix) { m, row, col -> m[m.rows - row - 1][col] }
+        override fun mapper(): TransposeMapper = { a, row, col -> a[a.rows - row - 1][col] }
     };
-
-    private companion object {
-        fun map(matrix: Matrix, transpose: TransposeMapper): Matrix {
-            val (cols, rows) = matrix.size
-            val transposed = Matrix(rows, cols)
-            (0 until rows).forEach { row ->
-                (0 until cols).forEach { col ->
-                    transposed[row][col] = transpose(matrix, row, col)
-                }
-            }
-            return transposed
-        }
-    }
-
-    abstract fun transpose(matrix: Matrix): Matrix
+    abstract fun mapper(): TransposeMapper
 }
 
 fun main() {
