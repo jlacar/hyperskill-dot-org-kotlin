@@ -2,6 +2,49 @@ package processor
 
 import processor.MatrixTransposeType.*
 
+fun main() {
+    do {
+        println("""|1. Add matrices
+               |2. Multiply matrix to a constant
+               |3. Multiply matrices
+               |4. Transpose matrix
+               |5. Calculate a determinant
+               |0. Exit
+               |Your choice: """.trimMargin())
+
+        val choice = mainMenuChoice()
+        when (choice) {
+            1 -> sum()
+            2 -> scalarProduct()
+            3 -> matrixProduct()
+            4 -> transposeMenu()
+            5 -> determinant()
+        }
+    } while (choice != 0)
+}
+
+private fun mainMenuChoice() = readInt(1).first()
+
+private fun readInt(count: Int): IntArray = readLine()!!.trim().split(" ")
+        .map { it.toInt() }.take(count).toIntArray()
+
+private fun readDouble(count: Int): DoubleArray = readLine()!!.trim().split(" ")
+        .map { it.toDouble() }.take(count).toDoubleArray()
+
+private fun readMatrix(): Matrix {
+    print("Enter matrix size: ")
+    val (rows, cols) = readInt(2)
+    val matrix = Matrix(rows, cols)
+    println("Enter matrix:")
+    repeat(rows) { matrix[it] = readDouble(cols) }
+    return matrix
+}
+
+private fun printResultOrError(result: Any?) {
+    println("""The result is:
+        |${result ?: "ERROR"}""".trimMargin())
+}
+
 class Matrix(val rows: Int, val cols: Int) {
     val size = Pair(rows, cols)
 
@@ -48,11 +91,17 @@ class Matrix(val rows: Int, val cols: Int) {
         return matrixSum
     }
 
+    private fun sum(a: DoubleArray, b: DoubleArray): DoubleArray =
+            a.mapIndexed { i, n -> n + b[i] }.toDoubleArray()
+
     operator fun times(scalar: Double): Matrix {
         val scalarProduct = Matrix(rows, cols)
         values.mapIndexed { i, row -> scalarProduct[i] = product(scalar, row) }
         return scalarProduct
     }
+
+    private fun product(scalar: Double, a: DoubleArray): DoubleArray =
+            a.map { it * scalar }.toDoubleArray()
 
     operator fun times(other: Matrix): Matrix? {
         if (this.cols != other.rows) return null
@@ -66,12 +115,6 @@ class Matrix(val rows: Int, val cols: Int) {
         return product
     }
 
-    private fun sum(a: DoubleArray, b: DoubleArray): DoubleArray =
-            a.mapIndexed { i, n -> n + b[i] }.toDoubleArray()
-
-    private fun product(scalar: Double, a: DoubleArray): DoubleArray =
-            a.map { it * scalar }.toDoubleArray()
-
     private fun product(a: DoubleArray, b: DoubleArray): Double =
             a.foldIndexed(0.0) { i, sum, value -> sum + value * b[i] }
 }
@@ -79,7 +122,13 @@ class Matrix(val rows: Int, val cols: Int) {
 // Make scalar multiplication commutative: scalar * Matrix == Matrix * scalar
 operator fun Double.times(matrix: Matrix) = matrix.times(this)
 
-typealias TransposeFunction = (Matrix, Int, Int) -> Double
+/**
+ * A function that calculates the value in the given Matrix that
+ * maps to the given row and column of the transposed Matrix.
+ * That is, given matrix a and the transpose function fn(),
+ * then fn(a, row, col) ==> a.transposed(row, col)
+ */
+private typealias TransposeFunction = (Matrix, Int, Int) -> Double
 
 enum class MatrixTransposeType {
     MAIN_DIAGONAL {
@@ -94,33 +143,8 @@ enum class MatrixTransposeType {
     HORIZONTAL_LINE {
         override fun mapper(): TransposeFunction = { a, row, col -> a[a.rows - row - 1][col] }
     };
+
     abstract fun mapper(): TransposeFunction
-}
-
-fun main() {
-    do {
-        val action = chooseAction()
-        when (action) {
-            1 -> sum()
-            2 -> scalarProduct()
-            3 -> matrixProduct()
-            4 -> transposeMenu()
-            5 -> determinant()
-        }
-    } while (action != 0)
-}
-
-private fun chooseAction(): Int {
-    println(
-    """|1. Add matrices
-       |2. Multiply matrix to a constant
-       |3. Multiply matrices
-       |4. Transpose matrix
-       |5. Calculate a determinant
-       |0. Exit
-       |Your choice: """.trimMargin())
-
-    return readInt(1).first()
 }
 
 private fun sum() {
@@ -137,46 +161,22 @@ private fun matrixProduct() {
     printResultOrError(readMatrix() * readMatrix())
 }
 
-private fun determinant() {
-    printResultOrError(readMatrix().determinant())
-}
-
-private fun printResultOrError(result: Any?) {
-    println("""The result is:
-        |${result ?: "ERROR"}""".trimMargin())
-}
-
 private fun transposeMenu() {
-    print(
-    """|1. Main diagonal
-       |2. Side diagonal
-       |3. Vertical line
-       |4. Horizontal line
-       |Your choice: """.trimMargin())
+    print("""|1. Main diagonal
+             |2. Side diagonal
+             |3. Vertical line
+             |4. Horizontal line
+             |Your choice: """.trimMargin())
 
-    doTransposeFor(typeChosen())
+    val type = transposeTypeChoice()
+    printResultOrError(readMatrix().transpose(type))
 }
 
-private fun typeChosen(): MatrixTransposeType {
+private fun transposeTypeChoice(): MatrixTransposeType {
     val ord = readInt(1).first() - 1
     return values().first { it.ordinal == ord }
 }
 
-private fun doTransposeFor(transposeStrategy: MatrixTransposeType) {
-    printResultOrError(readMatrix().transpose(transposeStrategy))
+private fun determinant() {
+    printResultOrError(readMatrix().determinant())
 }
-
-private fun readMatrix(): Matrix {
-    print("Enter matrix size: ")
-    val (rows, cols) = readInt(2)
-    val matrix = Matrix(rows, cols)
-    println("Enter matrix:")
-    repeat(rows) { matrix[it] = readDouble(cols) }
-    return matrix
-}
-
-private fun readInt(count: Int): IntArray = readLine()!!.trim().split(" ")
-        .map { it.toInt() }.take(count).toIntArray()
-
-private fun readDouble(count: Int): DoubleArray = readLine()!!.trim().split(" ")
-        .map { it.toDouble() }.take(count).toDoubleArray()
