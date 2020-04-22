@@ -15,10 +15,10 @@ class Matrix(val rows: Int, val cols: Int) {
     fun transpose(strategy: MatrixTransposeType = MAIN_DIAGONAL): Matrix {
         val (cols, rows) = this.size
         val transposed = Matrix(rows, cols)
-        val mapper = strategy.mapper()
-        (0 until rows).forEach { row ->
-            (0 until cols).forEach { col ->
-                transposed[row][col] = mapper(this, row, col)
+        val transposeFn = strategy.mapper()
+        for (row in 0 until rows) {
+            for (col in 0 until cols) {
+                transposed[row][col] = transposeFn(this, row, col)
             }
         }
         return transposed
@@ -79,22 +79,22 @@ class Matrix(val rows: Int, val cols: Int) {
 // Make scalar multiplication commutative: scalar * Matrix == Matrix * scalar
 operator fun Double.times(matrix: Matrix) = matrix.times(this)
 
-typealias TransposeMapper = (Matrix, Int, Int) -> Double
+typealias TransposeFunction = (Matrix, Int, Int) -> Double
 
 enum class MatrixTransposeType {
     MAIN_DIAGONAL {
-        override fun mapper(): TransposeMapper = { a, row, col -> a[col][row] }
+        override fun mapper(): TransposeFunction = { a, row, col -> a[col][row] }
     },
     SIDE_DIAGONAL {
-        override fun mapper(): TransposeMapper = { a, row, col -> a[a.cols - col - 1][a.rows - row - 1] }
+        override fun mapper(): TransposeFunction = { a, row, col -> a[a.cols - col - 1][a.rows - row - 1] }
     },
     VERTICAL_LINE {
-        override fun mapper(): TransposeMapper = { a, row, col -> a[row][a.cols - col - 1] }
+        override fun mapper(): TransposeFunction = { a, row, col -> a[row][a.cols - col - 1] }
     },
     HORIZONTAL_LINE {
-        override fun mapper(): TransposeMapper = { a, row, col -> a[a.rows - row - 1][col] }
+        override fun mapper(): TransposeFunction = { a, row, col -> a[a.rows - row - 1][col] }
     };
-    abstract fun mapper(): TransposeMapper
+    abstract fun mapper(): TransposeFunction
 }
 
 fun main() {
